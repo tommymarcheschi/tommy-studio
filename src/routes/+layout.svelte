@@ -52,7 +52,7 @@
 
 <div class="min-h-screen flex flex-col">
 	<!-- Header -->
-	<header class="sticky top-0 z-50 bg-white/90 dark:bg-neutral-950/90 backdrop-blur-sm">
+	<header class="sticky top-0 z-50 bg-white/90 dark:bg-neutral-950/90 backdrop-blur-sm relative">
 		<nav class="px-6 lg:px-10 py-5 flex items-center justify-between">
 			<div class="flex items-center gap-4">
 				<a href="/" class="hover:opacity-70 transition-opacity no-underline">
@@ -111,9 +111,9 @@
 			</button>
 		</nav>
 
-		<!-- Mobile menu -->
+		<!-- Mobile menu — absolute so it overlays content without pushing it down -->
 		{#if mobileMenuOpen}
-			<div class="md:hidden px-6 pb-8 pt-2 flex flex-col gap-5 text-lg" transition:fade={{ duration: 150 }}>
+			<div class="absolute left-0 right-0 top-full md:hidden px-6 pb-8 pt-2 flex flex-col gap-5 text-lg bg-white/95 dark:bg-neutral-950/95 backdrop-blur-sm border-t border-neutral-100 dark:border-neutral-800" transition:fade={{ duration: 150 }}>
 				<a href="/" class="hover:text-accent transition-colors no-underline">Works</a>
 				<a href="/about" class="hover:text-accent transition-colors no-underline">About</a>
 				<a href="/cv" class="hover:text-accent transition-colors no-underline">CV</a>
