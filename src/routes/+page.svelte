@@ -6,6 +6,7 @@
 
 	let { data } = $props();
 	const artworks = data.artworks;
+	const settings = data.settings;
 
 	let gridItems: HTMLElement[] = $state([]);
 	let toggleEl: HTMLElement;
@@ -72,9 +73,9 @@
 		<p class="text-lg lg:text-xl leading-relaxed">{siteConfig.bio}</p>
 	</section>
 
-	<!-- Auction Live CTA -->
-	{#if siteConfig.auctionLive}
-		<a href={siteConfig.auctionLive.url} target="_blank" rel="noopener" class="block mb-16 lg:mb-20 group no-underline">
+	<!-- CTA: Auction Live or Visit BMAG fallback -->
+	{#if settings.auction_live && settings.auction_url}
+		<a href={settings.auction_url} target="_blank" rel="noopener" class="block mb-16 lg:mb-20 group no-underline">
 			<div class="py-4 hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors inline-block">
 				<div class="flex items-center gap-3 mb-1">
 					<span class="relative flex h-2.5 w-2.5">
@@ -83,8 +84,19 @@
 					</span>
 					<span class="text-sm font-semibold uppercase tracking-wider">Auction Live</span>
 				</div>
-				<p class="font-medium">{siteConfig.auctionLive.title}</p>
+				<p class="font-medium">{settings.auction_title}</p>
 				<span class="inline-block mt-1 text-sm text-accent group-hover:underline">Bid Now &rarr;</span>
+			</div>
+		</a>
+	{:else}
+		<a href="https://museum.b.tc" target="_blank" rel="noopener" class="block mb-16 lg:mb-20 group no-underline">
+			<div class="py-4 hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors inline-flex items-center gap-4">
+				<img src="/bmag-camel.svg" alt="BMAG" class="h-8 opacity-40 group-hover:opacity-70 transition-opacity logo-img" />
+				<div>
+					<p class="text-sm font-semibold uppercase tracking-wider mb-1">Visit</p>
+					<p class="font-medium">BMAG — Bitcoin Museum & Art Gallery</p>
+					<span class="inline-block mt-1 text-sm text-accent group-hover:underline">museum.b.tc &rarr;</span>
+				</div>
 			</div>
 		</a>
 	{/if}

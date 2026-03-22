@@ -2,15 +2,13 @@ import { supabase } from '$lib/supabase';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async () => {
-	const { data: artworks, error } = await supabase
-		.from('artworks')
-		.select('*')
-		.order('sort_order', { ascending: true });
+	const [artworksRes, settingsRes] = await Promise.all([
+		supabase.from('artworks').select('*').order('sort_order', { ascending: true }),
+		supabase.from('site_settings').select('*').eq('id', 'main').single()
+	]);
 
-	if (error) {
-		console.error('Error fetching artworks:', error);
-		return { artworks: [] };
-	}
-
-	return { artworks: artworks ?? [] };
+	return {
+		artworks: artworksRes.data ?? [],
+		settings: settingsRes.data ?? { auction_live: false }
+	};
 };
