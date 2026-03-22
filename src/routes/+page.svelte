@@ -1,6 +1,9 @@
 <script lang="ts">
-	import { siteConfig, artworks } from '$lib/data/site';
+	import { siteConfig } from '$lib/data/site';
 	import { onMount } from 'svelte';
+
+	let { data } = $props();
+	const artworks = data.artworks;
 
 	let gridItems: HTMLElement[] = $state([]);
 

@@ -51,21 +51,21 @@
 		{/if}
 
 		<!-- Links -->
-		{#if artwork.externalLink || artwork.tokenLink}
+		{#if artwork.external_link || artwork.token_link}
 			<div class="flex flex-col gap-3 text-sm">
-				{#if artwork.tokenLink}
+				{#if artwork.token_link}
 					<a
-						href={artwork.tokenLink}
+						href={artwork.token_link}
 						target="_blank"
 						rel="noopener"
 						class="text-accent hover:underline no-underline"
 					>
-						{artwork.tokenLabel || 'View Token'} &rarr;
+						{artwork.token_label || 'View Token'} &rarr;
 					</a>
 				{/if}
-				{#if artwork.externalLink}
+				{#if artwork.external_link}
 					<a
-						href={artwork.externalLink}
+						href={artwork.external_link}
 						target="_blank"
 						rel="noopener"
 						class="text-accent hover:underline no-underline"
