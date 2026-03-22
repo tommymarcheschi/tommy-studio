@@ -1,0 +1,46 @@
+@import '@fontsource/montserrat/300.css';
+@import '@fontsource/montserrat/400.css';
+@import '@fontsource/montserrat/500.css';
+@import '@fontsource/montserrat/600.css';
+@import '@fontsource/montserrat/700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	body {
+		@apply bg-white text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100;
+		@apply font-sans antialiased;
+		@apply transition-colors duration-300;
+	}
+
+	::selection {
+		@apply bg-accent text-black;
+	}
+
+	a {
+		@apply underline-offset-4;
+	}
+}
+
+/* Pulse animation for live indicator */
+@keyframes pulsate {
+	0% { transform: scale(0.1); opacity: 0; }
+	50% { opacity: 1; }
+	100% { transform: scale(1.2); opacity: 0; }
+}
+
+.ring-ring {
+	animation: pulsate 1s ease-out infinite;
+}
+
+/* Dark mode logo invert */
+.dark .logo-img {
+	filter: invert(1);
+}
+
+/* Dark mode signature invert */
+.dark .signature-img {
+	filter: invert(1);
+}
