@@ -5,7 +5,8 @@ export default {
 	theme: {
 		extend: {
 			fontFamily: {
-				sans: ['Montserrat', 'system-ui', 'sans-serif']
+				sans: ['Montserrat', 'system-ui', 'sans-serif'],
+				serif: ['EB Garamond', 'Georgia', 'serif']
 			},
 			colors: {
 				accent: '#ff9900'

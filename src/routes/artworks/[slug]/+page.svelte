@@ -139,7 +139,7 @@
 
 	<!-- Details -->
 	<div class="max-w-xl mx-auto">
-		<h1 class="text-2xl lg:text-3xl font-semibold mb-6">{artwork.title}</h1>
+		<h1 class="font-serif italic text-3xl lg:text-4xl mb-6">{artwork.title}</h1>
 
 		<!-- Specs -->
 		<div class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm mb-10">
@@ -160,7 +160,7 @@
 		</div>
 
 		{#if artwork.dedication}
-			<p class="italic text-neutral-500 dark:text-neutral-400 mb-6">{artwork.dedication}</p>
+			<p class="font-serif italic text-neutral-500 dark:text-neutral-400 mb-6">{artwork.dedication}</p>
 		{/if}
 
 		{#if artwork.description}

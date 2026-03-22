@@ -3,6 +3,10 @@
 @import '@fontsource/montserrat/500.css';
 @import '@fontsource/montserrat/600.css';
 @import '@fontsource/montserrat/700.css';
+@import '@fontsource/eb-garamond/400.css';
+@import '@fontsource/eb-garamond/400-italic.css';
+@import '@fontsource/eb-garamond/500.css';
+@import '@fontsource/eb-garamond/600.css';
 
 @tailwind base;
 @tailwind components;
@@ -21,6 +25,11 @@
 
 	a {
 		@apply underline-offset-4;
+	}
+
+	em {
+		font-family: 'EB Garamond', Georgia, serif;
+		font-style: italic;
 	}
 }
 

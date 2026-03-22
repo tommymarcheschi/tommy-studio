@@ -84,18 +84,17 @@
 					</span>
 					<span class="text-sm font-semibold uppercase tracking-wider">Auction Live</span>
 				</div>
-				<p class="font-medium">{settings.auction_title}</p>
+				<p class="font-serif italic text-lg">{settings.auction_title}</p>
 				<span class="inline-block mt-1 text-sm text-accent group-hover:underline">Bid Now &rarr;</span>
 			</div>
 		</a>
 	{:else}
 		<a href="https://museum.b.tc" target="_blank" rel="noopener" class="block mb-16 lg:mb-20 group no-underline">
-			<div class="py-4 hover:bg-neutral-50 dark:hover:bg-neutral-900/50 transition-colors inline-flex items-center gap-4">
-				<img src="/bmag-camel.svg" alt="BMAG" class="h-8 opacity-40 group-hover:opacity-70 transition-opacity logo-img" />
-				<div>
-					<p class="text-sm font-semibold uppercase tracking-wider mb-1">Visit</p>
-					<p class="font-medium">BMAG — Bitcoin Museum & Art Gallery</p>
-					<span class="inline-block mt-1 text-sm text-accent group-hover:underline">museum.b.tc &rarr;</span>
+			<div class="py-5 px-6 inline-flex items-center gap-5 transition-all duration-300 group-hover:bg-neutral-900 dark:group-hover:bg-neutral-100 group-hover:px-8">
+				<img src="/bmag-camel.svg" alt="BMAG" class="h-8 logo-img transition-all duration-300 group-hover:invert dark:group-hover:invert-0" />
+				<div class="transition-colors duration-300">
+					<p class="font-medium group-hover:text-white dark:group-hover:text-neutral-900">Visit BMAG — Bitcoin Museum & Art Gallery</p>
+					<span class="inline-block mt-1 text-sm text-accent">museum.b.tc &rarr;</span>
 				</div>
 			</div>
 		</a>
@@ -135,7 +134,7 @@
 							/>
 						</div>
 						<div class="mt-3">
-							<h2 class="text-xs font-medium group-hover:text-accent transition-colors duration-300 leading-tight">{artwork.title}</h2>
+							<h2 class="font-serif italic text-sm group-hover:text-accent transition-colors duration-300 leading-tight">{artwork.title}</h2>
 							<p class="text-[11px] text-neutral-400 dark:text-neutral-500 mt-1">{artwork.medium}, {artwork.year}</p>
 						</div>
 					</a>
@@ -158,7 +157,7 @@
 							/>
 						</div>
 						<div class="py-1">
-							<h2 class="text-sm font-medium group-hover:text-accent transition-colors duration-300">{artwork.title}</h2>
+							<h2 class="font-serif italic text-base group-hover:text-accent transition-colors duration-300">{artwork.title}</h2>
 							<p class="text-xs text-neutral-400 dark:text-neutral-500 mt-1">{artwork.medium}, {artwork.year}</p>
 							{#if artwork.dimensions}
 								<p class="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">{artwork.dimensions}</p>
@@ -184,7 +183,7 @@
 							/>
 						</div>
 						<div class="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-							<h2 class="text-sm font-medium group-hover:text-accent transition-colors duration-300">{artwork.title}</h2>
+							<h2 class="font-serif italic text-base group-hover:text-accent transition-colors duration-300">{artwork.title}</h2>
 							<p class="text-xs text-neutral-400 dark:text-neutral-500">{artwork.medium}, {artwork.year}</p>
 						</div>
 					</a>
@@ -207,7 +206,7 @@
 							/>
 						</div>
 						<div class="mt-3">
-							<h2 class="text-xs font-medium group-hover:text-accent transition-colors duration-300 leading-tight">{artwork.title}</h2>
+							<h2 class="font-serif italic text-sm group-hover:text-accent transition-colors duration-300 leading-tight">{artwork.title}</h2>
 							<p class="text-[11px] text-neutral-400 dark:text-neutral-500 mt-1">{artwork.medium}, {artwork.year}</p>
 						</div>
 					</a>
