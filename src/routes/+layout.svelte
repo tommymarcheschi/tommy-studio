@@ -10,7 +10,14 @@
 
 	let { children } = $props();
 	let isHome = $derived($page.url.pathname === '/');
+	let mobileMenuOpen = $state(false);
 	let showLoader = $state(false);
+
+	// Close mobile menu on navigation
+	$effect(() => {
+		$page.url.pathname;
+		mobileMenuOpen = false;
+	});
 	let loaderTimeout: ReturnType<typeof setTimeout>;
 
 	// Show loader on any navigation (even fast ones get a brief flash)
@@ -52,9 +59,9 @@
 					<img src="/tommy-logo.svg" alt="tommy" class="h-4 logo-img" />
 				</a>
 
-				<!-- View toggle in nav (appears when scrolled past inline toggle on homepage) -->
+				<!-- View toggle in nav (desktop only, appears when scrolled past inline toggle) -->
 				{#if isHome && $showNavToggle}
-					<div class="flex items-center gap-0.5 ml-2" transition:fade={{ duration: 200 }}>
+					<div class="hidden md:flex items-center gap-0.5 ml-2" transition:fade={{ duration: 200 }}>
 						<button onclick={() => viewMode.set('grid')} class="p-1.5 transition-colors {$viewMode === 'grid' ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-300 dark:text-neutral-600 hover:text-neutral-500'}" aria-label="Grid view">
 							<svg width="14" height="14" viewBox="0 0 18 18" fill="none"><rect x="0.5" y="0.5" width="7" height="7" rx="0.5" stroke="currentColor"/><rect x="10.5" y="0.5" width="7" height="7" rx="0.5" stroke="currentColor"/><rect x="0.5" y="10.5" width="7" height="7" rx="0.5" stroke="currentColor"/><rect x="10.5" y="10.5" width="7" height="7" rx="0.5" stroke="currentColor"/></svg>
 						</button>
@@ -70,7 +77,9 @@
 					</div>
 				{/if}
 			</div>
-			<div class="flex items-center gap-6 text-sm">
+
+			<!-- Desktop nav -->
+			<div class="hidden md:flex items-center gap-6 text-sm">
 				<a href="/" class="hover:text-accent transition-colors no-underline">Works</a>
 				<a href="/about" class="hover:text-accent transition-colors no-underline">About</a>
 				<a href="/contact" class="hover:text-accent transition-colors no-underline">Contact</a>
@@ -87,7 +96,43 @@
 					{/if}
 				</button>
 			</div>
+
+			<!-- Mobile hamburger -->
+			<button
+				class="md:hidden w-8 h-8 flex items-center justify-center"
+				onclick={() => mobileMenuOpen = !mobileMenuOpen}
+				aria-label="Toggle menu"
+			>
+				{#if mobileMenuOpen}
+					<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 4L14 14M14 4L4 14" stroke="currentColor" stroke-width="1.5"/></svg>
+				{:else}
+					<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><line x1="1" y1="5" x2="17" y2="5" stroke="currentColor" stroke-width="1.5"/><line x1="1" y1="13" x2="17" y2="13" stroke="currentColor" stroke-width="1.5"/></svg>
+				{/if}
+			</button>
 		</nav>
+
+		<!-- Mobile menu -->
+		{#if mobileMenuOpen}
+			<div class="md:hidden px-6 pb-8 pt-2 flex flex-col gap-5 text-lg" transition:fade={{ duration: 150 }}>
+				<a href="/" class="hover:text-accent transition-colors no-underline">Works</a>
+				<a href="/about" class="hover:text-accent transition-colors no-underline">About</a>
+				<a href="/cv" class="hover:text-accent transition-colors no-underline">CV</a>
+				<a href="/contact" class="hover:text-accent transition-colors no-underline">Contact</a>
+				<a href={siteConfig.social[0].url} target="_blank" rel="noopener" class="hover:text-accent transition-colors no-underline">Follow</a>
+				<button
+					onclick={() => theme.toggle()}
+					class="flex items-center gap-2 text-neutral-400 dark:text-neutral-500 hover:text-accent transition-colors text-sm mt-2"
+				>
+					{#if $theme === 'dark'}
+						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+						Light mode
+					{:else}
+						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+						Dark mode
+					{/if}
+				</button>
+			</div>
+		{/if}
 	</header>
 
 	<!-- Main with page transition -->
