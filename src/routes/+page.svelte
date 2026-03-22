@@ -48,9 +48,14 @@
 	});
 
 	// When view mode changes, make new items visible immediately
+	// (skip first run — IntersectionObserver handles initial reveal)
+	let viewModeInitialized = false;
 	$effect(() => {
-		$viewMode;
-		if (!browser) return;
+		const mode = $viewMode;
+		if (!browser || !viewModeInitialized) {
+			viewModeInitialized = true;
+			return;
+		}
 		requestAnimationFrame(() => {
 			gridItems.forEach((el) => {
 				if (el && !el.classList.contains('is-visible')) {
