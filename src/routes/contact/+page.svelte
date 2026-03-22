@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { siteConfig } from '$lib/data/site';
 	import { page } from '$app/stores';
+
+	let { data } = $props();
+	let selectedArtwork = $state(data.selectedArtwork);
 </script>
 
 <svelte:head>
@@ -21,7 +24,13 @@
 		<!-- Content -->
 		<div class="flex-1 max-w-xl">
 			<h1 class="text-2xl lg:text-3xl font-semibold mb-4">Get in touch</h1>
-			<p class="text-neutral-500 dark:text-neutral-400 mb-12">For inquiries about artworks, commissions, collaborations, or press.</p>
+			<p class="text-neutral-500 dark:text-neutral-400 mb-12">
+				{#if selectedArtwork}
+					Inquiring about <span class="text-neutral-900 dark:text-neutral-100 font-medium">{selectedArtwork}</span>
+				{:else}
+					For inquiries about artworks, commissions, collaborations, or press.
+				{/if}
+			</p>
 
 			<form class="space-y-8">
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
@@ -41,11 +50,18 @@
 					</div>
 				</div>
 				<div>
-					<label for="subject" class="block text-xs uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-3">Subject</label>
-					<input type="text" id="subject" name="subject"
-						class="w-full bg-transparent border-b border-neutral-200 dark:border-neutral-800 px-0 py-3 text-sm focus:border-accent focus:outline-none transition-colors placeholder:text-neutral-300 dark:placeholder:text-neutral-700"
-						placeholder="Artwork inquiry, commission, press..."
-					/>
+					<label for="artwork" class="block text-xs uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-3">Regarding</label>
+					<select
+						id="artwork"
+						name="artwork"
+						bind:value={selectedArtwork}
+						class="w-full bg-transparent border-b border-neutral-200 dark:border-neutral-800 px-0 py-3 text-sm focus:border-accent focus:outline-none transition-colors appearance-none cursor-pointer"
+					>
+						<option value="">General inquiry</option>
+						{#each data.artworks as art}
+							<option value={art.title}>{art.title}</option>
+						{/each}
+					</select>
 				</div>
 				<div>
 					<label for="message" class="block text-xs uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-3">Message</label>
@@ -75,11 +91,7 @@
 					<p class="text-xs uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-2">Location</p>
 					<p>Nashville, Tennessee</p>
 				</div>
-				<div>
-					<p class="text-xs uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-2">Bitcoin</p>
-					<p class="font-mono text-xs break-all opacity-60 max-w-[200px]">{siteConfig.btcAddress}</p>
 				</div>
-			</div>
 		</div>
 	</div>
 </div>

@@ -1,20 +1,24 @@
 <script lang="ts">
 	import { siteConfig } from '$lib/data/site';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
+	import { viewMode, showNavToggle } from '$lib/viewMode';
 
 	let { data } = $props();
 	const artworks = data.artworks;
 
 	let gridItems: HTMLElement[] = $state([]);
+	let toggleEl: HTMLElement;
 
 	onMount(() => {
+		// Scroll reveal observer
 		requestAnimationFrame(() => {
-			const observer = new IntersectionObserver(
+			const revealObserver = new IntersectionObserver(
 				(entries) => {
 					entries.forEach((entry) => {
 						if (entry.isIntersecting) {
 							entry.target.classList.add('is-visible');
-							observer.unobserve(entry.target);
+							revealObserver.unobserve(entry.target);
 						}
 					});
 				},
@@ -22,10 +26,36 @@
 			);
 
 			gridItems.forEach((el) => {
-				if (el) observer.observe(el);
+				if (el) revealObserver.observe(el);
 			});
+		});
 
-			return () => observer.disconnect();
+		// Toggle visibility observer — when inline toggle scrolls out of view, show it in nav
+		const toggleObserver = new IntersectionObserver(
+			([entry]) => {
+				showNavToggle.set(!entry.isIntersecting);
+			},
+			{ threshold: 0 }
+		);
+
+		if (toggleEl) toggleObserver.observe(toggleEl);
+
+		return () => {
+			toggleObserver.disconnect();
+			showNavToggle.set(false);
+		};
+	});
+
+	// When view mode changes, make new items visible immediately
+	$effect(() => {
+		$viewMode;
+		if (!browser) return;
+		requestAnimationFrame(() => {
+			gridItems.forEach((el) => {
+				if (el && !el.classList.contains('is-visible')) {
+					el.classList.add('is-visible');
+				}
+			});
 		});
 	});
 </script>
@@ -59,33 +89,119 @@
 		</a>
 	{/if}
 
-	<!-- Portfolio Grid -->
+	<!-- View Toggle (inline) -->
+	<div class="flex items-center gap-1 mb-10" bind:this={toggleEl}>
+		<button onclick={() => viewMode.set('grid')} class="p-2 rounded transition-colors {$viewMode === 'grid' ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-300 dark:text-neutral-600 hover:text-neutral-500 dark:hover:text-neutral-400'}" aria-label="Grid view">
+			<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="0.5" y="0.5" width="7" height="7" rx="0.5" stroke="currentColor"/><rect x="10.5" y="0.5" width="7" height="7" rx="0.5" stroke="currentColor"/><rect x="0.5" y="10.5" width="7" height="7" rx="0.5" stroke="currentColor"/><rect x="10.5" y="10.5" width="7" height="7" rx="0.5" stroke="currentColor"/></svg>
+		</button>
+		<button onclick={() => viewMode.set('list')} class="p-2 rounded transition-colors {$viewMode === 'list' ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-300 dark:text-neutral-600 hover:text-neutral-500 dark:hover:text-neutral-400'}" aria-label="List view">
+			<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="0.5" y="1.5" width="5" height="5" rx="0.5" stroke="currentColor"/><line x1="8" y1="2.5" x2="17.5" y2="2.5" stroke="currentColor"/><line x1="8" y1="5.5" x2="14" y2="5.5" stroke="currentColor"/><rect x="0.5" y="11.5" width="5" height="5" rx="0.5" stroke="currentColor"/><line x1="8" y1="12.5" x2="17.5" y2="12.5" stroke="currentColor"/><line x1="8" y1="15.5" x2="14" y2="15.5" stroke="currentColor"/></svg>
+		</button>
+		<button onclick={() => viewMode.set('single')} class="p-2 rounded transition-colors {$viewMode === 'single' ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-300 dark:text-neutral-600 hover:text-neutral-500 dark:hover:text-neutral-400'}" aria-label="Single view">
+			<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="0.5" y="2.5" width="17" height="13" rx="0.5" stroke="currentColor"/></svg>
+		</button>
+		<button onclick={() => viewMode.set('masonry')} class="p-2 rounded transition-colors {$viewMode === 'masonry' ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-300 dark:text-neutral-600 hover:text-neutral-500 dark:hover:text-neutral-400'}" aria-label="Masonry view">
+			<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="0.5" y="0.5" width="7" height="10" rx="0.5" stroke="currentColor"/><rect x="10.5" y="0.5" width="7" height="6" rx="0.5" stroke="currentColor"/><rect x="0.5" y="13.5" width="7" height="4" rx="0.5" stroke="currentColor"/><rect x="10.5" y="9.5" width="7" height="8" rx="0.5" stroke="currentColor"/></svg>
+		</button>
+	</div>
+
+	<!-- Portfolio -->
 	<section class="pb-20 lg:pb-28">
-		<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-14 lg:gap-x-12 lg:gap-y-20">
-			{#each artworks as artwork, i}
-				<a
-					href="/artworks/{artwork.slug}"
-					class="artwork-card block group no-underline"
-					bind:this={gridItems[i]}
-					style="transition-delay: {(i % 4) * 80}ms"
-				>
-					<div class="aspect-[3/4] overflow-hidden">
-						<img
-							src={artwork.image}
-							alt={artwork.title}
-							loading="lazy"
-							class="w-full h-full object-cover transition-all duration-500 group-hover:scale-[1.03] group-hover:opacity-90"
-						/>
-					</div>
-					<div class="mt-3">
-						<h2 class="text-xs font-medium group-hover:text-accent transition-colors duration-300 leading-tight">{artwork.title}</h2>
-						<p class="text-[11px] text-neutral-400 dark:text-neutral-500 mt-1 transition-colors duration-300 group-hover:text-neutral-600 dark:group-hover:text-neutral-300">
-							{artwork.medium}, {artwork.year}
-						</p>
-					</div>
-				</a>
-			{/each}
-		</div>
+		<!-- Grid View -->
+		{#if $viewMode === 'grid'}
+			<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-14 lg:gap-x-12 lg:gap-y-20">
+				{#each artworks as artwork, i}
+					<a
+						href="/artworks/{artwork.slug}"
+						class="artwork-card block group no-underline"
+						bind:this={gridItems[i]}
+						style="transition-delay: {(i % 4) * 80}ms"
+					>
+						<div class="aspect-[3/4] overflow-hidden">
+							<img src={artwork.image} alt={artwork.title} loading="lazy"
+								class="w-full h-full object-cover transition-all duration-500 group-hover:scale-[1.03] group-hover:opacity-90"
+							/>
+						</div>
+						<div class="mt-3">
+							<h2 class="text-xs font-medium group-hover:text-accent transition-colors duration-300 leading-tight">{artwork.title}</h2>
+							<p class="text-[11px] text-neutral-400 dark:text-neutral-500 mt-1">{artwork.medium}, {artwork.year}</p>
+						</div>
+					</a>
+				{/each}
+			</div>
+
+		<!-- List View -->
+		{:else if $viewMode === 'list'}
+			<div class="space-y-8">
+				{#each artworks as artwork, i}
+					<a
+						href="/artworks/{artwork.slug}"
+						class="artwork-card flex gap-6 group no-underline items-start"
+						bind:this={gridItems[i]}
+						style="transition-delay: {i * 40}ms"
+					>
+						<div class="w-24 lg:w-32 shrink-0 overflow-hidden">
+							<img src={artwork.image} alt={artwork.title} loading="lazy"
+								class="w-full aspect-[3/4] object-cover transition-all duration-500 group-hover:opacity-80"
+							/>
+						</div>
+						<div class="py-1">
+							<h2 class="text-sm font-medium group-hover:text-accent transition-colors duration-300">{artwork.title}</h2>
+							<p class="text-xs text-neutral-400 dark:text-neutral-500 mt-1">{artwork.medium}, {artwork.year}</p>
+							{#if artwork.dimensions}
+								<p class="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5">{artwork.dimensions}</p>
+							{/if}
+						</div>
+					</a>
+				{/each}
+			</div>
+
+		<!-- Single View -->
+		{:else if $viewMode === 'single'}
+			<div class="space-y-20 lg:space-y-28 max-w-4xl mx-auto">
+				{#each artworks as artwork, i}
+					<a
+						href="/artworks/{artwork.slug}"
+						class="artwork-card block group no-underline"
+						bind:this={gridItems[i]}
+						style="transition-delay: {i * 60}ms"
+					>
+						<div class="overflow-hidden">
+							<img src={artwork.image} alt={artwork.title} loading="lazy"
+								class="w-full object-contain transition-all duration-500 group-hover:opacity-90"
+							/>
+						</div>
+						<div class="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+							<h2 class="text-sm font-medium group-hover:text-accent transition-colors duration-300">{artwork.title}</h2>
+							<p class="text-xs text-neutral-400 dark:text-neutral-500">{artwork.medium}, {artwork.year}</p>
+						</div>
+					</a>
+				{/each}
+			</div>
+
+		<!-- Masonry View -->
+		{:else if $viewMode === 'masonry'}
+			<div class="columns-2 md:columns-3 xl:columns-4 gap-8 lg:gap-12">
+				{#each artworks as artwork, i}
+					<a
+						href="/artworks/{artwork.slug}"
+						class="artwork-card block group no-underline mb-8 lg:mb-12 break-inside-avoid"
+						bind:this={gridItems[i]}
+						style="transition-delay: {(i % 4) * 80}ms"
+					>
+						<div class="overflow-hidden">
+							<img src={artwork.image} alt={artwork.title} loading="lazy"
+								class="w-full object-cover transition-all duration-500 group-hover:scale-[1.03] group-hover:opacity-90"
+							/>
+						</div>
+						<div class="mt-3">
+							<h2 class="text-xs font-medium group-hover:text-accent transition-colors duration-300 leading-tight">{artwork.title}</h2>
+							<p class="text-[11px] text-neutral-400 dark:text-neutral-500 mt-1">{artwork.medium}, {artwork.year}</p>
+						</div>
+					</a>
+				{/each}
+			</div>
+		{/if}
 	</section>
 </div>
 

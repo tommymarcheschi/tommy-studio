@@ -6,8 +6,10 @@
 	import { navigating } from '$app/stores';
 	import { fade } from 'svelte/transition';
 	import { onMount } from 'svelte';
+	import { viewMode, showNavToggle } from '$lib/viewMode';
 
 	let { children } = $props();
+	let isHome = $derived($page.url.pathname === '/');
 	let showLoader = $state(false);
 	let loaderTimeout: ReturnType<typeof setTimeout>;
 
@@ -45,9 +47,29 @@
 	<!-- Header -->
 	<header class="sticky top-0 z-50 bg-white/90 dark:bg-neutral-950/90 backdrop-blur-sm">
 		<nav class="px-6 lg:px-10 py-5 flex items-center justify-between">
-			<a href="/" class="hover:opacity-70 transition-opacity no-underline">
-				<img src="/tommy-logo.svg" alt="tommy" class="h-4 logo-img" />
-			</a>
+			<div class="flex items-center gap-4">
+				<a href="/" class="hover:opacity-70 transition-opacity no-underline">
+					<img src="/tommy-logo.svg" alt="tommy" class="h-4 logo-img" />
+				</a>
+
+				<!-- View toggle in nav (appears when scrolled past inline toggle on homepage) -->
+				{#if isHome && $showNavToggle}
+					<div class="flex items-center gap-0.5 ml-2" transition:fade={{ duration: 200 }}>
+						<button onclick={() => viewMode.set('grid')} class="p-1.5 transition-colors {$viewMode === 'grid' ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-300 dark:text-neutral-600 hover:text-neutral-500'}" aria-label="Grid view">
+							<svg width="14" height="14" viewBox="0 0 18 18" fill="none"><rect x="0.5" y="0.5" width="7" height="7" rx="0.5" stroke="currentColor"/><rect x="10.5" y="0.5" width="7" height="7" rx="0.5" stroke="currentColor"/><rect x="0.5" y="10.5" width="7" height="7" rx="0.5" stroke="currentColor"/><rect x="10.5" y="10.5" width="7" height="7" rx="0.5" stroke="currentColor"/></svg>
+						</button>
+						<button onclick={() => viewMode.set('list')} class="p-1.5 transition-colors {$viewMode === 'list' ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-300 dark:text-neutral-600 hover:text-neutral-500'}" aria-label="List view">
+							<svg width="14" height="14" viewBox="0 0 18 18" fill="none"><rect x="0.5" y="1.5" width="5" height="5" rx="0.5" stroke="currentColor"/><line x1="8" y1="2.5" x2="17.5" y2="2.5" stroke="currentColor"/><line x1="8" y1="5.5" x2="14" y2="5.5" stroke="currentColor"/><rect x="0.5" y="11.5" width="5" height="5" rx="0.5" stroke="currentColor"/><line x1="8" y1="12.5" x2="17.5" y2="12.5" stroke="currentColor"/><line x1="8" y1="15.5" x2="14" y2="15.5" stroke="currentColor"/></svg>
+						</button>
+						<button onclick={() => viewMode.set('single')} class="p-1.5 transition-colors {$viewMode === 'single' ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-300 dark:text-neutral-600 hover:text-neutral-500'}" aria-label="Single view">
+							<svg width="14" height="14" viewBox="0 0 18 18" fill="none"><rect x="0.5" y="2.5" width="17" height="13" rx="0.5" stroke="currentColor"/></svg>
+						</button>
+						<button onclick={() => viewMode.set('masonry')} class="p-1.5 transition-colors {$viewMode === 'masonry' ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-300 dark:text-neutral-600 hover:text-neutral-500'}" aria-label="Masonry view">
+							<svg width="14" height="14" viewBox="0 0 18 18" fill="none"><rect x="0.5" y="0.5" width="7" height="10" rx="0.5" stroke="currentColor"/><rect x="10.5" y="0.5" width="7" height="6" rx="0.5" stroke="currentColor"/><rect x="0.5" y="13.5" width="7" height="4" rx="0.5" stroke="currentColor"/><rect x="10.5" y="9.5" width="7" height="8" rx="0.5" stroke="currentColor"/></svg>
+						</button>
+					</div>
+				{/if}
+			</div>
 			<div class="flex items-center gap-6 text-sm">
 				<a href="/" class="hover:text-accent transition-colors no-underline">Works</a>
 				<a href="/about" class="hover:text-accent transition-colors no-underline">About</a>
@@ -79,26 +101,21 @@
 
 	<!-- Footer -->
 	<footer class="mt-auto">
-		<div class="px-6 lg:px-10 py-12">
-			<div class="flex flex-col md:flex-row justify-between gap-8 text-sm text-neutral-400 dark:text-neutral-500">
-				<div class="flex flex-col gap-3">
-					<p class="text-neutral-600 dark:text-neutral-300">Tommy Marcheschi (b. {siteConfig.birthYear})</p>
-					<p class="max-w-sm">{siteConfig.bio}</p>
-				</div>
-				<div class="flex flex-col gap-3">
-					<p class="text-neutral-600 dark:text-neutral-300 text-xs uppercase tracking-wider">Projects</p>
-					{#each siteConfig.projects as project}
-						<a href={project.url} target="_blank" rel="noopener" class="hover:text-accent transition-colors no-underline">{project.name}</a>
-					{/each}
-				</div>
-				<div class="flex flex-col gap-3">
-					<p class="text-neutral-600 dark:text-neutral-300 text-xs uppercase tracking-wider">Connect</p>
-					<a href="/contact" class="hover:text-accent transition-colors no-underline">Contact</a>
-					<a href={siteConfig.social[0].url} target="_blank" rel="noopener" class="hover:text-accent transition-colors no-underline">{siteConfig.social[0].handle}</a>
-					<p class="text-xs font-mono break-all opacity-50 max-w-[240px] mt-2">{siteConfig.btcAddress}</p>
-				</div>
+		<div class="px-6 lg:px-10 py-16 lg:py-20">
+			<!-- Signature -->
+			<div class="mb-14">
+				<img src="/tommy-signature-new.svg" alt="Tommy Marcheschi signature" class="h-12 logo-img opacity-30" />
 			</div>
-			<p class="text-xs text-neutral-400 dark:text-neutral-600 mt-10">&copy; {new Date().getFullYear()} Tommy Marcheschi</p>
+
+			<div class="flex flex-col gap-2 text-sm text-neutral-400 dark:text-neutral-500">
+				<a href="/" class="hover:text-accent transition-colors no-underline">Works</a>
+				<a href="/about" class="hover:text-accent transition-colors no-underline">About</a>
+				<a href="/cv" class="hover:text-accent transition-colors no-underline">CV</a>
+				<a href="/contact" class="hover:text-accent transition-colors no-underline">Contact</a>
+				<a href={siteConfig.social[0].url} target="_blank" rel="noopener" class="hover:text-accent transition-colors no-underline">{siteConfig.social[0].handle}</a>
+			</div>
+
+			<p class="text-xs text-neutral-300 dark:text-neutral-700 mt-14">&copy; {new Date().getFullYear()} Tommy Marcheschi. All rights reserved.</p>
 		</div>
 	</footer>
 </div>
