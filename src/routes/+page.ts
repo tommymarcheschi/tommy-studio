@@ -1,14 +1,13 @@
-import { supabase } from '$lib/supabase';
+import { artworks, siteConfig } from '$lib/data/site';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async () => {
-	const [artworksRes, settingsRes] = await Promise.all([
-		supabase.from('artworks').select('*').order('sort_order', { ascending: true }),
-		supabase.from('site_settings').select('*').eq('id', 'main').single()
-	]);
-
 	return {
-		artworks: artworksRes.data ?? [],
-		settings: settingsRes.data ?? { auction_live: false }
+		artworks,
+		settings: {
+			auction_live: !!siteConfig.auctionLive,
+			auction_url: siteConfig.auctionLive?.url ?? null,
+			auction_title: siteConfig.auctionLive?.title ?? null
+		}
 	};
 };
