@@ -1,14 +1,9 @@
-import { supabase } from '$lib/supabase';
+import { artworks } from '$lib/data/site';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ url }) => {
-	const { data: artworks } = await supabase
-		.from('artworks')
-		.select('title, slug')
-		.order('sort_order', { ascending: true });
-
 	return {
-		artworks: artworks ?? [],
+		artworks: artworks.map((a) => ({ title: a.title, slug: a.slug })),
 		selectedArtwork: url.searchParams.get('artwork') || ''
 	};
 };

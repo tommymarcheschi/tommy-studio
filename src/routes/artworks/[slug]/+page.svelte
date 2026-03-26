@@ -2,9 +2,8 @@
 	let { data } = $props();
 	const { artwork } = data;
 
-	// Build image array: main image first, then any additional images from Supabase
-	const additionalImages: string[] = artwork.additional_images || [];
-	const images = [artwork.image, ...additionalImages];
+	// Build image array: main image (additional images not yet supported in static data)
+	const images = [artwork.image];
 	let currentIndex = $state(0);
 
 	function next() {
@@ -168,21 +167,21 @@
 		{/if}
 
 		<!-- Links -->
-		{#if artwork.external_link || artwork.token_link}
+		{#if artwork.externalLink || artwork.tokenLink}
 			<div class="flex flex-col gap-3 text-sm">
-				{#if artwork.token_link}
+				{#if artwork.tokenLink}
 					<a
-						href={artwork.token_link}
+						href={artwork.tokenLink}
 						target="_blank"
 						rel="noopener"
 						class="text-accent hover:underline no-underline"
 					>
-						{artwork.token_label || 'View Token'} &rarr;
+						{artwork.tokenLabel || 'View Token'} &rarr;
 					</a>
 				{/if}
-				{#if artwork.external_link}
+				{#if artwork.externalLink}
 					<a
-						href={artwork.external_link}
+						href={artwork.externalLink}
 						target="_blank"
 						rel="noopener"
 						class="text-accent hover:underline no-underline"
