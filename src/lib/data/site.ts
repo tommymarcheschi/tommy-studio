@@ -12,10 +12,7 @@ export const siteConfig = {
 		{ platform: 'X', url: 'https://x.com/YungGucciT', handle: '@YungGucciT' }
 	],
 	btcAddress: 'bc1p3e7l6hct5sys0ctdspx0r53a5nwdzlt9cull4fjtj4f2wzlanyhs20v52k',
-	auctionLive: {
-		title: 'END FIAT! BEFORE FIAT ENDS US',
-		url: 'https://rsmc.tech/auctions/end-fiat'
-	}
+	auctionLive: null
 };
 
 export interface Artwork {
