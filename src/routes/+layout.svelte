@@ -59,9 +59,9 @@
 					<img src="/tommy-logo.svg" alt="tommy" class="h-4 logo-img" />
 				</a>
 
-				<!-- View toggle in nav (desktop only, appears when scrolled past inline toggle) -->
+				<!-- View toggle in nav (appears when scrolled past inline toggle) -->
 				{#if isHome && $showNavToggle}
-					<div class="hidden md:flex items-center gap-0.5 ml-2" transition:fade={{ duration: 200 }}>
+					<div class="flex items-center gap-0.5 ml-2" transition:fade={{ duration: 200 }}>
 						<button onclick={() => viewMode.set('grid')} class="p-1.5 transition-colors {$viewMode === 'grid' ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-300 dark:text-neutral-600 hover:text-neutral-500'}" aria-label="Grid view">
 							<svg width="14" height="14" viewBox="0 0 18 18" fill="none"><rect x="0.5" y="0.5" width="7" height="7" rx="0.5" stroke="currentColor"/><rect x="10.5" y="0.5" width="7" height="7" rx="0.5" stroke="currentColor"/><rect x="0.5" y="10.5" width="7" height="7" rx="0.5" stroke="currentColor"/><rect x="10.5" y="10.5" width="7" height="7" rx="0.5" stroke="currentColor"/></svg>
 						</button>
