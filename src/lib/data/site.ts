@@ -94,6 +94,17 @@ export const artworks: Artwork[] = [
 		sortOrder: 6
 	},
 	{
+		slug: 'cozy-gizmo',
+		title: 'COZY GIZMO',
+		year: 2024,
+		medium: 'Oil on canvas',
+		dimensions: '8 x 10 in (framed 17 x 19 in)',
+		description: 'A cozy Gizmo rests atop a Bitcoin ASIC miner. Featured in the Mining Issue of Bitcoin Magazine.',
+		image: 'https://swqjuprgwddxcmivcpgh.supabase.co/storage/v1/object/public/artworks/art/gizmo-cozy.jpeg',
+		externalLink: 'https://satoshihouse.auction/auctions/gizmo-cozy',
+		sortOrder: 7
+	},
+	{
 		slug: 'end-fiat-before-fiat-ends-us',
 		title: 'END FIAT! (BEFORE FIAT ENDS US)',
 		year: 2023,
@@ -103,7 +114,7 @@ export const artworks: Artwork[] = [
 		externalLink: 'https://rsmc.tech/auctions/end-fiat',
 		tokenLink: 'https://ordinals.com/inscription/00246c1e419ff39cc3d190064f489be4fe81a706fb032ef55f4042e091dfd90ai0',
 		tokenLabel: 'Ordinal Inscription',
-		sortOrder: 7
+		sortOrder: 8
 	},
 	{
 		slug: 'gatekeepers',
@@ -115,7 +126,7 @@ export const artworks: Artwork[] = [
 		image: 'https://swqjuprgwddxcmivcpgh.supabase.co/storage/v1/object/public/artworks/art/gatekeepers.webp',
 		tokenLink: 'https://xchain.io/asset/GATEKEEPERS',
 		tokenLabel: 'CounterParty Token',
-		sortOrder: 8
+		sortOrder: 9
 	},
 	{
 		slug: 'codex-alimentarius',
@@ -126,7 +137,7 @@ export const artworks: Artwork[] = [
 		description: 'Bitcoin War Bonds #5. A dark, surrealist propaganda poster exposing the intersection of food regulation, pharmaceutical control, and institutional power. References the real-world Codex Alimentarius Commission.',
 		image: 'https://swqjuprgwddxcmivcpgh.supabase.co/storage/v1/object/public/artworks/art/codex-alimentarius.jpg',
 		externalLink: 'https://scarce.city/auctions/codex-alimentarius-bitcoin-war-bonds',
-		sortOrder: 9
+		sortOrder: 10
 	},
 	{
 		slug: 'running',
@@ -136,7 +147,7 @@ export const artworks: Artwork[] = [
 		description: 'A portrait of Hal Finney in motion — the legendary Bitcoin pioneer who received the first-ever Bitcoin transaction from Satoshi Nakamoto and was also a dedicated runner. 50% of auction proceeds donated to the ALS Foundation.',
 		image: 'https://swqjuprgwddxcmivcpgh.supabase.co/storage/v1/object/public/artworks/art/running.jpeg',
 		externalLink: 'https://satoshihouse.auction/auctions/running',
-		sortOrder: 10
+		sortOrder: 11
 	},
 	{
 		slug: '420-pepe',
@@ -147,7 +158,7 @@ export const artworks: Artwork[] = [
 		description: 'A 420 special edition — started, completed, and auctioned for PEPE on April 20, 2023. Accompanied by an ordinal inscription.',
 		image: 'https://swqjuprgwddxcmivcpgh.supabase.co/storage/v1/object/public/artworks/art/420-pepe.jpg',
 		externalLink: 'https://gallery.manifold.xyz/listing?listingId=5326',
-		sortOrder: 11
+		sortOrder: 12
 	},
 	{
 		slug: 'backofpepe',
@@ -158,7 +169,7 @@ export const artworks: Artwork[] = [
 		image: 'https://swqjuprgwddxcmivcpgh.supabase.co/storage/v1/object/public/artworks/art/backofpepe.gif',
 		tokenLink: 'https://xchain.io/asset/BACKOFPEPE',
 		tokenLabel: 'CounterParty Token',
-		sortOrder: 12
+		sortOrder: 13
 	},
 	{
 		slug: 'rosslivesnow',
@@ -169,7 +180,7 @@ export const artworks: Artwork[] = [
 		description: 'A small but charged portrait of Ross Ulbricht. On permanent display at the BMAG Free Ross Exhibit in Nashville, TN. Originally offered for a direct donation of 1.83961921 BTC to FreeRoss.org — the amount matching his $183,961,921 fine.',
 		image: 'https://swqjuprgwddxcmivcpgh.supabase.co/storage/v1/object/public/artworks/art/rosslivesnow.jpg',
 		externalLink: 'https://freeross.org/',
-		sortOrder: 13
+		sortOrder: 14
 	},
 	{
 		slug: 'forhodlonaut',
@@ -178,7 +189,7 @@ export const artworks: Artwork[] = [
 		medium: 'Acrylic on canvas',
 		description: 'A portrait of the pseudonymous Bitcoiner Hodlonaut, painted as a congratulatory gift after his long and victorious legal battle with Craig Wright.',
 		image: 'https://swqjuprgwddxcmivcpgh.supabase.co/storage/v1/object/public/artworks/art/forhodlonaut.jpg',
-		sortOrder: 14
+		sortOrder: 15
 	},
 	{
 		slug: 'warbonds',
@@ -190,7 +201,7 @@ export const artworks: Artwork[] = [
 		externalLink: 'https://www.bitcoinwarbonds.law/',
 		tokenLink: 'https://xchain.io/asset/WARBONDS.BITCOIN',
 		tokenLabel: 'WARBONDS.BITCOIN (CounterParty)',
-		sortOrder: 15
+		sortOrder: 16
 	},
 	{
 		slug: 'cusp-of-revolution',
@@ -200,7 +211,7 @@ export const artworks: Artwork[] = [
 		description: 'Bitcoin War Bonds #4. A classical portrait in an ornate gold frame — a quieter, more traditional entry in the series that signals the broader cultural shift Bitcoin represents.',
 		image: 'https://swqjuprgwddxcmivcpgh.supabase.co/storage/v1/object/public/artworks/art/cusp-of-revolution.jpg',
 		externalLink: 'https://www.bitcoinwarbonds.law',
-		sortOrder: 16
+		sortOrder: 17
 	},
 	{
 		slug: 'bitcoin-frog',
@@ -211,7 +222,7 @@ export const artworks: Artwork[] = [
 		image: 'https://swqjuprgwddxcmivcpgh.supabase.co/storage/v1/object/public/artworks/art/bitcoin-frog.jpg',
 		tokenLink: 'https://xchain.io/asset/WARBONDS.BITCOINFROG',
 		tokenLabel: 'WARBONDS.BITCOINFROG (CounterParty)',
-		sortOrder: 17
+		sortOrder: 18
 	},
 	{
 		slug: 'hodlomonster-culmination-of-proof-a-clash-of-cats-and-the-charlatan',
@@ -222,7 +233,7 @@ export const artworks: Artwork[] = [
 		description: 'An epoch duel between cats and pussies — this moment echoes through the timechain. Painted in support of Hodlonaut during his legal battle. 100% of proceeds donated via @DefendingBTC.',
 		image: 'https://swqjuprgwddxcmivcpgh.supabase.co/storage/v1/object/public/artworks/art/hodlomonster-culmination-of-proof-a-clash-of-cats-and-the-charlatan.webp',
 		externalLink: 'https://scarce.city/auctions/hodlomonster',
-		sortOrder: 18
+		sortOrder: 19
 	},
 	{
 		slug: 'deathtofiat',
@@ -233,7 +244,7 @@ export const artworks: Artwork[] = [
 		image: 'https://swqjuprgwddxcmivcpgh.supabase.co/storage/v1/object/public/artworks/art/deathtofiat.webp',
 		tokenLink: 'https://xchain.io/asset/DEATHTOFIAT',
 		tokenLabel: 'CounterParty Token',
-		sortOrder: 19
+		sortOrder: 20
 	},
 	{
 		slug: 'untitled-for-all',
@@ -244,6 +255,6 @@ export const artworks: Artwork[] = [
 		description: 'Tommy\'s first major painting, created over the span of a year (March 2020 to April 2021) while working as Art Director at BTC Inc. A Guy Fawkes mask rendered in acrylic, charcoal, and ash on hand-stretched canvas. A small piece of shredded paper landed on his table mid-process reading "FOR ALL" — giving the work its name and its thesis: privacy is a self-evident right for all.',
 		image: 'https://swqjuprgwddxcmivcpgh.supabase.co/storage/v1/object/public/artworks/art/untitled-for-all.png',
 		externalLink: 'https://scarce.city/products/untitled-for-all-hidden',
-		sortOrder: 20
+		sortOrder: 21
 	}
 ];
