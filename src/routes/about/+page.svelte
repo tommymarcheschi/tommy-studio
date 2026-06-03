@@ -29,7 +29,7 @@
 				</p>
 
 				<p>
-					Originally from Glen Ellyn, Illinois, Tommy received his BFA in Graphic Design from the University of South Carolina in 2015 before relocating to Nashville. After learning more about Bitcoin in 2016-17 and joining BTC Media as a graphic designer, he eventually became the company's artist-in-residence. His artistic practice lives at the intersection of fine art and graphic design — he calls it "pre-emptive propaganda." The idea is simple: the most blatant propaganda comes from governments, and the best defense is to meme the dystopia before the state can normalize it. By channeling the visual language of European wartime posters, Tommy exposes the absurdity of state overreach before it arrives, giving his audience a framework to recognize it when it does.
+					Originally from Glen Ellyn, Illinois, Tommy received his BFA in Studio Art (Graphic Design &amp; Illustration) from the University of South Carolina in 2015 before relocating to Nashville. After learning more about Bitcoin in 2016-17 and joining BTC Inc as a graphic designer, he eventually became the company's artist-in-residence. His artistic practice lives at the intersection of fine art and graphic design — he calls it "pre-emptive propaganda." The idea is simple: the most blatant propaganda comes from governments, and the best defense is to meme the dystopia before the state can normalize it. By channeling the visual language of European wartime posters, Tommy exposes the absurdity of state overreach before it arrives, giving his audience a framework to recognize it when it does.
 				</p>
 
 				<p>
@@ -37,7 +37,7 @@
 				</p>
 
 				<p>
-					Inspired by <a href="https://scarce.city" target="_blank" rel="noopener" class="text-accent hover:underline">Scarce City</a>'s pioneering Bitcoin art auctions, Tommy and developer Erik Jacobi built <a href="https://satoshihouse.auction" target="_blank" rel="noopener" class="text-accent hover:underline">Satoshi House Auctions</a> — a Bitcoin-native auction house for fine art and artifacts. That platform, combined with a growing collection of over 200 works co-built with David Bailey (CEO of Nakamoto Inc), became the foundation for <a href="https://museum.b.tc" target="_blank" rel="noopener" class="text-accent hover:underline">BMAG (Bitcoin Museum & Art Gallery)</a>. Co-founded with Bailey, curator Dennis Koch, and Jacobi, BMAG launched in Nashville on Genesis Day, January 3, 2026 — a permanent home for Bitcoin's cultural history.
+					Inspired by <a href="https://scarce.city" target="_blank" rel="noopener" class="text-accent hover:underline">Scarce City</a>'s pioneering Bitcoin art auctions, Tommy and developer Erik Jacobi built <a href="https://satoshihouse.auction" target="_blank" rel="noopener" class="text-accent hover:underline">Satoshi House Auctions</a> — a Bitcoin-native auction house for fine art and artifacts. That platform, combined with a growing collection of over 200 works co-built with David Bailey (CEO of Nakamoto Inc), became the foundation for <a href="https://museum.b.tc" target="_blank" rel="noopener" class="text-accent hover:underline">BMAG (Bitcoin Museum & Art Gallery)</a>. A founding member alongside Bailey, curator Dennis Koch, and Jacobi, Tommy helped launch BMAG in Nashville on Genesis Day, January 3, 2026 — a permanent home for Bitcoin's cultural history.
 				</p>
 			</div>
 
@@ -54,7 +54,7 @@
 
 				<div>
 					<p class="text-neutral-600 dark:text-neutral-300 text-xs uppercase tracking-wider mb-3">Education</p>
-					<p>BFA Graphic Design, University of South Carolina, 2015</p>
+					<p>BFA Studio Art (Graphic Design &amp; Illustration), University of South Carolina, 2015</p>
 				</div>
 			</div>
 		</div>
