@@ -31,7 +31,7 @@
 					<p class="font-semibold mb-4">2025</p>
 					<div class="space-y-4 text-neutral-600 dark:text-neutral-400">
 						<div>
-							<p><em><a href="https://b.tc/conference/2025" target="_blank" rel="noopener" class="text-accent hover:underline">Bitcoin 2025: The Art of Freedom</a></em>, Venetian Expo, Las Vegas</p>
+							<p><em><a href="https://b.tc/conference/2025" target="_blank" rel="noopener" class="text-accent hover:underline">Bitcoin 2025</a></em>, Venetian Expo, Las Vegas — <em>The Art of Freedom</em> gallery</p>
 							<p class="pl-4 mt-1">
 								<a href="https://scarce.city/auctions/ross-ulbricht-portrait-tommy" target="_blank" rel="noopener" class="text-accent hover:underline">Ross Ulbricht Portrait</a>,
 								<a href="https://scarce.city/auctions/compliance-violence" target="_blank" rel="noopener" class="text-accent hover:underline">COMPLIANCE=VIOLENCE</a>
@@ -63,7 +63,7 @@
 					<p class="font-semibold mb-4">2023</p>
 					<div class="space-y-4 text-neutral-600 dark:text-neutral-400">
 						<div>
-							<p><em><a href="https://b.tc/conference/2023" target="_blank" rel="noopener" class="text-accent hover:underline">Bitcoin 2023: The Renaissance Continues</a></em>, Miami</p>
+							<p><em><a href="https://b.tc/conference/2023" target="_blank" rel="noopener" class="text-accent hover:underline">Bitcoin 2023</a></em>, Miami</p>
 							<p class="pl-4 mt-1">
 								<a href="https://scarce.city/auctions/gatekeepers" target="_blank" rel="noopener" class="text-accent hover:underline">GATEKEEPERS</a> (for Julian Assange),
 								<a href="https://scarce.city/auctions/codex-alimentarius-bitcoin-war-bonds" target="_blank" rel="noopener" class="text-accent hover:underline">CODEX ALIMENTARIUS</a> (BWB #5)
@@ -80,7 +80,7 @@
 					<p class="font-semibold mb-4">2022</p>
 					<div class="space-y-4 text-neutral-600 dark:text-neutral-400">
 						<div>
-							<p><em><a href="https://b.tc/conference/2022" target="_blank" rel="noopener" class="text-accent hover:underline">Bitcoin 2022: Bitcoin Renaissance Gallery</a></em>, Miami Beach — Artist-in-Residence</p>
+							<p><em><a href="https://b.tc/conference/2022" target="_blank" rel="noopener" class="text-accent hover:underline">Bitcoin 2022</a></em>, Miami Beach — <em>Bitcoin Renaissance</em> gallery, Artist-in-Residence</p>
 							<p class="pl-4 mt-1">BITCOIN WAR BONDS (debut), CUSP OF REVOLUTION, ROSSLIVESNOW, FORHODLONAUT, HODLOMONSTER, BITCOIN FROG, DEATHTOFIAT</p>
 						</div>
 						<div>
@@ -124,8 +124,8 @@
 				<h2 class="text-xs uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-6">Selected Press</h2>
 				<div class="space-y-3 text-sm text-neutral-600 dark:text-neutral-400">
 					<p><a href="https://21ism.com/portfolio-item/tommy-marcheschi/" target="_blank" rel="noopener" class="text-accent hover:underline">21ism — Featured Artist Profile (Block 09)</a></p>
-					<p><a href="https://bitcoinmagazine.com/culture/bitcoin-magazine-auctions-art-for-bitcoin" target="_blank" rel="noopener" class="text-accent hover:underline">Bitcoin Magazine / Nasdaq — Auction coverage, 2021</a></p>
-					<p><a href="https://bitcoinmagazine.com/press-releases/bitcoin-magazine-art-gallery-opening" target="_blank" rel="noopener" class="text-accent hover:underline">Bitcoin Magazine / Nasdaq — Nashville Gallery Opening, 2022</a></p>
+					<p><a href="https://bitcoinmagazine.com/culture/bitcoin-magazine-auctions-art-for-bitcoin" target="_blank" rel="noopener" class="text-accent hover:underline">Bitcoin Magazine — Auction coverage, 2021</a></p>
+					<p><a href="https://bitcoinmagazine.com/press-releases/bitcoin-magazine-art-gallery-opening" target="_blank" rel="noopener" class="text-accent hover:underline">Bitcoin Magazine — Nashville Gallery Opening, 2022</a></p>
 				</div>
 			</div>
 		</div>
