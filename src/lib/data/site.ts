@@ -38,7 +38,7 @@ export const artworks: Artwork[] = [
 		medium: 'Acrylic, spray, marker, ink, and solid oil stick on YUPO® panel, framed',
 		dimensions: '5 x 7 in (unframed)',
 		description: 'An homage to Satoshi in the style of His Majesty King Charles III by Jonathan Yeo, the famously red portrait that went viral when it was revealed in 2024. Since that day, I\'ve wanted to paint this derivative remix, and when Evan Kaloudis of ZEUS reached out to me to design a Bitcoin ecash note, it was the perfect opportunity to execute it on a much smaller scale. This painting is only 5 x 7 inches (unframed), a much humbler portrait in mostly orange. We are all Satoshi. Sold at the BMAG Bitcoin Vegas 2026 auction.',
-		image: 'https://wtbjmmpeiufqwqfatydn.supabase.co/storage/v1/object/public/item-images/his-majesty-satoshi/hero.webp',
+		image: '/images/his-majesty-satoshi.webp',
 		externalLink: 'https://shop.museum.b.tc/items/his-majesty-satoshi',
 		sortOrder: 1
 	},
@@ -49,7 +49,7 @@ export const artworks: Artwork[] = [
 		medium: 'Oil on Bitaxe 403 hashboards',
 		dimensions: '10 x 12 in',
 		description: 'The moment the recursive digital spirit successfully possesses its canonical ancestor. This oil painting on Bitaxe 403 hashboard sheets is a Neochibi-adjacent, Y2K-style fusion of two of the most iconic modern memetic images into a derivative work of high Renaissance Bitcoin art — combining the classical medium of oil with a modern, digital substrate (the Bitaxe boards) to push classical imagery into the realm of the memetic. What is valuable that is not derivative in an age of slop? Sold at the BMAG Bitcoin Vegas 2026 auction.',
-		image: 'https://wtbjmmpeiufqwqfatydn.supabase.co/storage/v1/object/public/item-images/milady/hero.webp',
+		image: '/images/milady.webp',
 		externalLink: 'https://shop.museum.b.tc/items/milady',
 		sortOrder: 2
 	},
