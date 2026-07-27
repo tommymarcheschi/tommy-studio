@@ -26,6 +26,23 @@
 			<h2 class="text-xs uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-8">Selected Exhibitions & Auctions</h2>
 
 			<div class="space-y-12 text-sm">
+				<!-- 2026 -->
+				<div>
+					<p class="font-semibold mb-4">2026</p>
+					<div class="space-y-4 text-neutral-600 dark:text-neutral-400">
+						<div>
+							<p><em>Bitcoin Asia 2026</em>, Hong Kong — <em>upcoming</em></p>
+						</div>
+						<div>
+							<p><em>Bitcoin Vegas 2026</em>, Las Vegas — BMAG auction</p>
+							<p class="pl-4 mt-1">
+								<a href="https://shop.museum.b.tc/items/his-majesty-satoshi" target="_blank" rel="noopener" class="text-accent hover:underline">His Majesty Satoshi</a>,
+								<a href="https://shop.museum.b.tc/items/milady" target="_blank" rel="noopener" class="text-accent hover:underline">Milady</a>
+							</p>
+						</div>
+					</div>
+				</div>
+
 				<!-- 2025 -->
 				<div>
 					<p class="font-semibold mb-4">2025</p>

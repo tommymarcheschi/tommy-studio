@@ -3,6 +3,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import { viewMode, showNavToggle } from '$lib/viewMode';
+	import { thumbUrl } from '$lib/utils/image';
 
 	let { data } = $props();
 	const artworks = data.artworks;
@@ -134,7 +135,7 @@
 						style="transition-delay: {(i % 4) * 80}ms"
 					>
 						<div class="aspect-[3/4] overflow-hidden">
-							<img src={artwork.image} alt={artwork.title} loading="lazy"
+							<img src={thumbUrl(artwork.image, 500)} alt={artwork.title} loading="lazy" decoding="async"
 								class="w-full h-full object-cover transition-all duration-500 group-hover:scale-[1.03] group-hover:opacity-90"
 							/>
 						</div>
@@ -157,7 +158,7 @@
 						style="transition-delay: {i * 40}ms"
 					>
 						<div class="w-24 lg:w-32 shrink-0 overflow-hidden">
-							<img src={artwork.image} alt={artwork.title} loading="lazy"
+							<img src={thumbUrl(artwork.image, 300)} alt={artwork.title} loading="lazy" decoding="async"
 								class="w-full aspect-[3/4] object-cover transition-all duration-500 group-hover:opacity-80"
 							/>
 						</div>
@@ -183,7 +184,7 @@
 						style="transition-delay: {i * 60}ms"
 					>
 						<div class="overflow-hidden">
-							<img src={artwork.image} alt={artwork.title} loading="lazy"
+							<img src={thumbUrl(artwork.image, 900)} alt={artwork.title} loading="lazy" decoding="async"
 								class="w-full object-contain transition-all duration-500 group-hover:opacity-90"
 							/>
 						</div>
@@ -206,7 +207,7 @@
 						style="transition-delay: {(i % 4) * 80}ms"
 					>
 						<div class="overflow-hidden">
-							<img src={artwork.image} alt={artwork.title} loading="lazy"
+							<img src={thumbUrl(artwork.image, 500)} alt={artwork.title} loading="lazy" decoding="async"
 								class="w-full object-cover transition-all duration-500 group-hover:scale-[1.03] group-hover:opacity-90"
 							/>
 						</div>
