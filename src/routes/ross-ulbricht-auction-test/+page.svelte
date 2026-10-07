@@ -98,8 +98,8 @@
 			<div class="eyebrow">The Lot</div>
 			<h1 class="title">Ross Ulbricht's Prison Nikes</h1>
 			<p class="lede">
-				The shoes Ross Ulbricht wore in federal prison — a single artifact at the intersection
-				of a movement and its most-cited sentence.
+				The shoes Ross Ulbricht wore out of prison as a free man. A significant historic
+				artifact to the Bitcoin community.
 			</p>
 
 			<div class="shoebox">
