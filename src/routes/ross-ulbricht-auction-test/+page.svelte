@@ -95,11 +95,11 @@
 	<main class="grid">
 		<!-- LEFT: the object -->
 		<section class="object">
-			<div class="eyebrow">Bitcoin 2025 · Las Vegas · Lot</div>
+			<div class="eyebrow">The Lot</div>
 			<h1 class="title">Ross Ulbricht's Prison Nikes</h1>
 			<p class="lede">
-				The shoes Ross Ulbricht wore in federal prison, auctioned at Bitcoin 2025 in Las Vegas.
-				A single artifact at the intersection of a movement and its most-cited sentence.
+				The shoes Ross Ulbricht wore in federal prison — a single artifact at the intersection
+				of a movement and its most-cited sentence.
 			</p>
 
 			<div class="shoebox">
@@ -116,88 +116,90 @@
 
 		<!-- RIGHT: the offer builder -->
 		<section class="offer">
-			<div class="eyebrow">Build your offer</div>
-			<h2 class="offer-h">Set your total. A donation to BPI unlocks the purchase.</h2>
+			{#if phase === 'idle'}
+				<!-- ── OFFER BUILDER (slider) ─────────────────────────────── -->
+				<div class="eyebrow">Build your offer</div>
+				<h2 class="offer-h">Set your total. A donation to BPI unlocks the purchase.</h2>
 
-			<!-- Total headline -->
-			<div class="totalrow">
-				<div class="totalbtc">₿{fmtBtc(total)}</div>
-				<div class="totalusd">≈ {fmtUsd(total)} <span class="assume">at ${BTC_USD.toLocaleString()}/₿</span></div>
-			</div>
-
-			<!-- Slider -->
-			<div class="sliderwrap" style="--pct:{sliderPct}%">
-				<input
-					type="range"
-					min={MIN}
-					max={MAX}
-					step={STEP}
-					bind:value={total}
-					aria-label="Total offer in Bitcoin"
-					disabled={phase !== 'idle'}
-				/>
-				<div class="ticks">
-					<span>₿5</span><span>₿10</span><span>₿20</span><span>₿30</span><span>₿40</span><span>₿50</span>
+				<!-- Total headline -->
+				<div class="totalrow">
+					<div class="totalbtc">₿{fmtBtc(total)}</div>
+					<div class="totalusd">≈ {fmtUsd(total)} <span class="assume">at ${BTC_USD.toLocaleString()}/₿</span></div>
 				</div>
-			</div>
 
-			<!-- Split bar -->
-			<div class="splitbar" aria-hidden="true">
-				<div class="seg seg-bpi" style="width:{bpiPct}%"></div>
-				<div class="seg seg-seller" style="width:{sellerPct}%"></div>
-			</div>
-
-			<!-- Breakdown -->
-			<div class="breakdown">
-				<div class="line">
-					<div class="lbl"><span class="dot dot-bpi"></span> Donation to BPI</div>
-					<div class="val">
-						<span class="v-btc">₿{fmtBtc(bpi)}</span>
-						<span class="v-usd">{fmtUsd(bpi)}</span>
-						<span class="v-pct">{bpiPct.toFixed(0)}%</span>
+				<!-- Slider -->
+				<div class="sliderwrap" style="--pct:{sliderPct}%">
+					<input
+						type="range"
+						min={MIN}
+						max={MAX}
+						step={STEP}
+						bind:value={total}
+						aria-label="Total offer in Bitcoin"
+					/>
+					<div class="ticks">
+						<span>₿5</span><span>₿10</span><span>₿20</span><span>₿30</span><span>₿40</span><span>₿50</span>
 					</div>
 				</div>
-				<div class="hair"></div>
-				<div class="line">
-					<div class="lbl"><span class="dot dot-seller"></span> Purchase · to seller</div>
-					<div class="val">
-						<span class="v-btc">₿{fmtBtc(seller)}</span>
-						<span class="v-usd">{fmtUsd(seller)}</span>
-						<span class="v-pct">{sellerPct.toFixed(0)}%</span>
+
+				<!-- Split bar -->
+				<div class="splitbar" aria-hidden="true">
+					<div class="seg seg-bpi" style="width:{bpiPct}%"></div>
+					<div class="seg seg-seller" style="width:{sellerPct}%"></div>
+				</div>
+
+				<!-- Breakdown -->
+				<div class="breakdown">
+					<div class="line">
+						<div class="lbl"><span class="dot dot-bpi"></span> Donation to BPI</div>
+						<div class="val">
+							<span class="v-btc">₿{fmtBtc(bpi)}</span>
+							<span class="v-usd">{fmtUsd(bpi)}</span>
+							<span class="v-pct">{bpiPct.toFixed(0)}%</span>
+						</div>
+					</div>
+					<div class="hair"></div>
+					<div class="line">
+						<div class="lbl"><span class="dot dot-seller"></span> Purchase · to seller</div>
+						<div class="val">
+							<span class="v-btc">₿{fmtBtc(seller)}</span>
+							<span class="v-usd">{fmtUsd(seller)}</span>
+							<span class="v-pct">{sellerPct.toFixed(0)}%</span>
+						</div>
 					</div>
 				</div>
-			</div>
 
-			<!-- Why this matters callout (design-voice hallmark) -->
-			<div class="callout">
-				<div class="callout-h">How the split works</div>
-				<p>
-					Up to ₿10, the donation and the purchase are even. Past ₿10, the seller's share rises
-					gradually to a ₿10 cap at ₿50 — so <strong>every coin you add above ₿10 weighs toward BPI</strong>.
-					Pull to ₿50 and you donate ₿40 to the Bitcoin Policy Institute.
-				</p>
-			</div>
+				<!-- Why this matters callout (design-voice hallmark) -->
+				<div class="callout">
+					<div class="callout-h">How the split works</div>
+					<p>
+						Up to ₿10, the donation and the purchase are even. Past ₿10, the seller's share rises
+						gradually to a ₿10 cap at ₿50 — so <strong>every coin you add above ₿10 weighs toward BPI</strong>.
+						Pull to ₿50 and you donate ₿40 to the Bitcoin Policy Institute.
+					</p>
+				</div>
 
-			<!-- ── Payment flow ──────────────────────────────────────────── -->
-			<div class="pay">
+				<button class="btn btn-primary" onclick={startDonation}>
+					Pay now · ₿{fmtBtc(total)}
+				</button>
+				<p class="paynote">Step 1 sends your ₿{fmtBtc(bpi)} donation to BPI. That unlocks step 2.</p>
+
+			{:else}
+				<!-- ── CHECKOUT (replaces the slider in place) ────────────── -->
+				<div class="eyebrow">Checkout · ₿{fmtBtc(total)} total</div>
+
 				<!-- Step indicator -->
 				<div class="steps">
 					<div class="step" class:on={phase === 'donateQr'} class:done={phase === 'donatePaid' || phase === 'buyQr' || phase === 'complete'}>
 						<span class="num">1</span> Donate to BPI
 					</div>
 					<div class="steparrow">→</div>
-					<div class="step" class:locked={phase === 'idle' || phase === 'donateQr'} class:on={phase === 'buyQr'} class:done={phase === 'complete'}>
+					<div class="step" class:locked={phase === 'donateQr'} class:on={phase === 'buyQr'} class:done={phase === 'complete'}>
 						<span class="num">2</span> Purchase the shoes
 					</div>
 				</div>
 
-				{#if phase === 'idle'}
-					<button class="btn btn-primary" onclick={startDonation}>
-						Pay now · ₿{fmtBtc(total)}
-					</button>
-					<p class="paynote">Step 1 sends your ₿{fmtBtc(bpi)} donation to BPI. That unlocks step 2.</p>
-
-				{:else if phase === 'donateQr'}
+				{#if phase === 'donateQr'}
 					<div class="qrcard">
 						<div class="qrhead">Step 1 — Donate ₿{fmtBtc(bpi)} to BPI</div>
 						<div class="qr">
@@ -206,6 +208,7 @@
 						<div class="addr">{BPI_ADDR}</div>
 						<div class="await">Awaiting confirmation…</div>
 						<button class="btn btn-primary" onclick={completeDonation}>Complete payment (simulate)</button>
+						<button class="btn btn-ghost" onclick={reset}>← Back to offer</button>
 					</div>
 
 				{:else if phase === 'donatePaid'}
@@ -240,7 +243,7 @@
 						<button class="btn btn-ghost" onclick={reset}>Start over</button>
 					</div>
 				{/if}
-			</div>
+			{/if}
 		</section>
 	</main>
 
@@ -396,6 +399,7 @@
 	.paynote { font-size: 12px; color: var(--muted); margin: 12px 0 0; text-align: center; }
 
 	.qrcard, .paid, .done { border: 1px solid var(--line); border-radius: 3px; padding: 22px; text-align: center; }
+	.qrcard .btn + .btn, .paid .btn + .btn, .done .btn + .btn { margin-top: 10px; }
 	.qrhead { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
 	.qr { width: 180px; height: 180px; margin: 0 auto 14px; display: grid; grid-template-columns: repeat(25, 1fr); grid-template-rows: repeat(25, 1fr); border: 8px solid #fff; box-shadow: 0 0 0 1px var(--line); background: #fff; }
 	.cell { background: #fff; }
