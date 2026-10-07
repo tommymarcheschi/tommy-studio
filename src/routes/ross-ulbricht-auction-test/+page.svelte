@@ -419,4 +419,30 @@
 	.done-note { font-size: 13px; line-height: 1.55; color: #3a3a3d; margin: 14px 0 20px; }
 
 	.foot { display: flex; justify-content: space-between; padding: 18px 0 0; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); flex-wrap: wrap; gap: 8px; }
+
+	/* ── Mobile polish ─────────────────────────────────────────────── */
+	@media (max-width: 560px) {
+		.grid { padding: 28px 0; gap: 32px; }
+		.masthead { padding: 22px 0 16px; }
+		.wordmark { height: 22px; }
+		.kicker { font-size: 10px; letter-spacing: 1.5px; }
+		.lede { font-size: 15px; }
+		.totalbtc { font-size: 38px; }
+		/* bigger touch target on the slider thumb */
+		input[type='range']::-webkit-slider-thumb { width: 26px; height: 26px; }
+		input[type='range']::-moz-range-thumb { width: 26px; height: 26px; }
+		.ticks { font-size: 10px; }
+		/* let the breakdown numbers stack under the label instead of cramping */
+		.line { flex-direction: column; align-items: flex-start; gap: 6px; padding: 13px 0; }
+		.val { gap: 10px; }
+		.v-usd { min-width: 0; text-align: left; }
+		.facts > div { grid-template-columns: 96px 1fr; gap: 12px; }
+		.btn { padding: 16px 18px; font-size: 13px; }
+		.qr { width: 160px; height: 160px; }
+	}
+	@media (max-width: 380px) {
+		.totalrow { flex-direction: column; gap: 4px; }
+		.facts > div { grid-template-columns: 1fr; gap: 3px; }
+		.facts dd { font-size: 13px; }
+	}
 </style>
