@@ -103,10 +103,8 @@
 			</p>
 
 			<div class="shoebox">
-				<div class="shoeph">
-					<span class="shoeph-label">Shoe image</span>
-					<span class="shoeph-sub">placeholder — final photography to be supplied</span>
-				</div>
+				<img src="/ross-ulbricht-nikes.jpg" alt="Ross Ulbricht's prison Nikes, framed in a shadowbox" class="shoeimg" />
+				<div class="shoecap">The lot · framed shadowbox presentation</div>
 			</div>
 
 			<dl class="facts">
@@ -324,19 +322,8 @@
 	.lede { color: #2a2a2d; font-size: 15px; line-height: 1.6; max-width: 46ch; margin: 0 0 24px; }
 
 	.shoebox { margin: 8px 0 24px; }
-	.shoeph {
-		border: 1px dashed #c9c9cf;
-		background: repeating-linear-gradient(45deg, #fafafa, #fafafa 12px, #f4f4f4 12px, #f4f4f4 24px);
-		aspect-ratio: 4 / 3;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 6px;
-		border-radius: 2px;
-	}
-	.shoeph-label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
-	.shoeph-sub { font-size: 11px; color: #a3a3a9; }
+	.shoeimg { display: block; width: 100%; height: auto; border-radius: 2px; }
+	.shoecap { margin-top: 10px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
 
 	.facts { margin: 0; display: grid; gap: 0; }
 	.facts > div { display: grid; grid-template-columns: 120px 1fr; gap: 16px; padding: 12px 0; border-top: 1px solid var(--line); }
