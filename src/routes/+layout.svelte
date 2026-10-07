@@ -10,6 +10,9 @@
 
 	let { children } = $props();
 	let isHome = $derived($page.url.pathname === '/');
+	// Standalone routes render their own chrome (e.g. the BMAG mock checkout) —
+	// skip the portfolio nav/footer/transitions for these.
+	let bare = $derived($page.url.pathname.startsWith('/ross-ulbricht-auction-test'));
 	let mobileMenuOpen = $state(false);
 	let showLoader = $state(false);
 
@@ -50,6 +53,9 @@
 	</div>
 {/if}
 
+{#if bare}
+	{@render children()}
+{:else}
 <div class="min-h-screen flex flex-col">
 	<!-- Header -->
 	<header class="sticky top-0 z-50 bg-white/90 dark:bg-neutral-950/90 backdrop-blur-sm relative">
@@ -164,6 +170,7 @@
 		</div>
 	</footer>
 </div>
+{/if}
 
 <style>
 	@keyframes loading {
