@@ -108,9 +108,9 @@
 			</div>
 
 			<dl class="facts">
-				<div><dt>Provenance</dt><dd>Owned by Michael Grant · acquired Bitcoin 2025, Las Vegas</dd></div>
-				<div><dt>Format</dt><dd>Donation-unlocked purchase · BPI first, seller second</dd></div>
-				<div><dt>Settlement</dt><dd>Two sequential on-chain Bitcoin payments</dd></div>
+				<div><dt>Provenance</dt><dd>Ross Nike Freedom Shoes acquired by Coin Think Tank at auction during Bitcoin 2025, Las Vegas</dd></div>
+				<div><dt>Donation</dt><dd>A donation to BPI unlocks the purchase price. Use the slider below to set your BPI donation.</dd></div>
+				<div><dt>Purchase price</dt><dd>After your BPI donation, the Ross Shoes purchase price is unlocked, allowing you to purchase the shoes.</dd></div>
 			</dl>
 		</section>
 
@@ -186,7 +186,7 @@
 
 			{:else}
 				<!-- ── CHECKOUT (replaces the slider in place) ────────────── -->
-				<div class="eyebrow">Checkout · ₿{fmtBtc(total)} total</div>
+				<div class="eyebrow">Checkout</div>
 
 				<!-- Step indicator -->
 				<div class="steps">
@@ -235,9 +235,8 @@
 						<div class="check big">✓</div>
 						<div class="done-h">Offer complete</div>
 						<div class="done-grid">
-							<div><span class="dl">Donated to BPI</span><span class="dv">₿{fmtBtc(bpi)}</span></div>
-							<div><span class="dl">Paid to seller</span><span class="dv">₿{fmtBtc(seller)}</span></div>
-							<div><span class="dl">Total</span><span class="dv">₿{fmtBtc(total)}</span></div>
+							<div><span class="dl">Total donated to BPI</span><span class="dv">₿{fmtBtc(bpi)}</span></div>
+							<div><span class="dl">Total purchase price</span><span class="dv">₿{fmtBtc(seller)}</span></div>
 						</div>
 						<p class="done-note">The shoes are yours, and ₿{fmtBtc(bpi)} ({fmtUsd(bpi)}) now supports the Bitcoin Policy Institute.</p>
 						<button class="btn btn-ghost" onclick={reset}>Start over</button>
@@ -252,6 +251,17 @@
 		<span>BMAG × BPI</span>
 		<span>Preview for seller review · not a live sale</span>
 	</footer>
+
+	<div class="legal">
+		<p>
+			The Bitcoin Policy Institute (BPI) is a non-profit, 501(c)(3) and is eligible to receive your
+			tax-deductible contributions directly.
+		</p>
+		<p>
+			The seller, CoinThinkTank, will pay applicable federal and state taxes on the purchase price
+			of the shoes.
+		</p>
+	</div>
 </div>
 
 <style>
@@ -419,6 +429,9 @@
 	.done-note { font-size: 13px; line-height: 1.55; color: #3a3a3d; margin: 14px 0 20px; }
 
 	.foot { display: flex; justify-content: space-between; padding: 18px 0 0; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); flex-wrap: wrap; gap: 8px; }
+
+	.legal { margin-top: 18px; display: grid; gap: 7px; }
+	.legal p { margin: 0; font-size: 11px; line-height: 1.5; color: #8a8a90; max-width: 70ch; }
 
 	/* ── Mobile polish ─────────────────────────────────────────────── */
 	@media (max-width: 560px) {
