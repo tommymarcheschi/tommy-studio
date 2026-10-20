@@ -38,6 +38,10 @@
 	const BPI_ADDR = 'bc1qbpi0donation0mock0address0do0not0send0funds0xy';
 	const SELLER_ADDR = 'bc1qseller0mock0address0do0not0send0real0funds0zk';
 
+	// Mock transaction ids for the receipt (illustrative only — real flow fills these in).
+	const BPI_TXID = 'mock0000d0nati0n00000000000000000000000000000000000000000000f00d';
+	const SELLER_TXID = 'mock00000purch4se00000000000000000000000000000000000000000000beef';
+
 	// A tiny on-the-fly QR-ish matrix purely for visual flavor (deterministic from seed).
 	function qrCells(seed: string): boolean[] {
 		const n = 25 * 25;
@@ -109,8 +113,8 @@
 
 			<dl class="facts">
 				<div><dt>Provenance</dt><dd>Ross Nike Freedom Shoes acquired by Coin Think Tank at auction during Bitcoin 2025, Las Vegas</dd></div>
-				<div><dt>Donation</dt><dd>A donation to BPI unlocks the purchase price. Use the slider below to set your BPI donation.</dd></div>
-				<div><dt>Purchase price</dt><dd>After your BPI donation, the Ross Shoes purchase price is unlocked, allowing you to purchase the shoes.</dd></div>
+				<div><dt>Donation</dt><dd>A donation to BPI unlocks the purchase price. Use the slider below to set your BPI donation. The Bitcoin Policy Institute (BPI) is a non-profit, 501(c)(3) and is eligible to receive your tax-deductible contributions directly.</dd></div>
+				<div><dt>Purchase price</dt><dd>After your BPI donation, the Ross Shoes purchase price is unlocked, allowing you to purchase the shoes. The seller, CoinThinkTank, will pay applicable federal and state taxes on the purchase price of the shoes.</dd></div>
 			</dl>
 		</section>
 
@@ -119,7 +123,7 @@
 			{#if phase === 'idle'}
 				<!-- ── OFFER BUILDER (slider) ─────────────────────────────── -->
 				<div class="eyebrow">Build your offer</div>
-				<h2 class="offer-h">Set your total. A donation to BPI unlocks the purchase.</h2>
+				<h2 class="offer-h">Set your total using the slider below. A donation to BPI unlocks the purchase of the shoes.</h2>
 
 				<!-- Total headline -->
 				<div class="totalrow">
@@ -138,7 +142,9 @@
 						aria-label="Total offer in Bitcoin"
 					/>
 					<div class="ticks">
-						<span>₿5</span><span>₿10</span><span>₿20</span><span>₿30</span><span>₿40</span><span>₿50</span>
+						{#each [5, 10, 20, 30, 40, 50] as t}
+							<span style="left:{((t - MIN) / (MAX - MIN)) * 100}%">₿{t}</span>
+						{/each}
 					</div>
 				</div>
 
@@ -180,7 +186,7 @@
 				</div>
 
 				<button class="btn btn-primary" onclick={startDonation}>
-					Pay now · ₿{fmtBtc(total)}
+					Donate now · ₿{fmtBtc(bpi)}
 				</button>
 				<p class="paynote">Step 1 sends your ₿{fmtBtc(bpi)} donation to BPI. That unlocks step 2.</p>
 
@@ -231,15 +237,46 @@
 					</div>
 
 				{:else if phase === 'complete'}
+					<!-- Final receipt. Bold-bordered cards separate the DONATION from the
+					     PURCHASE so this page reads as a receipt for everyone involved
+					     (buyer, seller, BPI). Each card carries its own TXID + address. -->
 					<div class="done">
 						<div class="check big">✓</div>
 						<div class="done-h">Offer complete</div>
-						<div class="done-grid">
-							<div><span class="dl">Total donated to BPI</span><span class="dv">₿{fmtBtc(bpi)}</span></div>
-							<div><span class="dl">Total purchase price</span><span class="dv">₿{fmtBtc(seller)}</span></div>
+
+						<!-- Donation receipt card -->
+						<div class="receipt">
+							<div class="receipt-top">
+								<span class="dl">Total donated to BPI</span>
+								<span class="dv">₿{fmtBtc(bpi)}</span>
+							</div>
+							<dl class="receipt-meta">
+								<div><dt>Transaction ID</dt><dd>{BPI_TXID}</dd></div>
+								<div><dt>BTC address</dt><dd>{BPI_ADDR}</dd></div>
+							</dl>
+							<p class="receipt-fine">
+								The Bitcoin Policy Institute (BPI) is a non-profit, 501(c)(3) and is eligible
+								to receive your tax-deductible contributions directly.
+							</p>
 						</div>
-						<p class="done-note">The shoes are yours, and ₿{fmtBtc(bpi)} ({fmtUsd(bpi)}) now supports the Bitcoin Policy Institute.</p>
-						<button class="btn btn-ghost" onclick={reset}>Start over</button>
+
+						<!-- Purchase receipt card -->
+						<div class="receipt">
+							<div class="receipt-top">
+								<span class="dl">Total Ross Shoes purchase price</span>
+								<span class="dv">₿{fmtBtc(seller)}</span>
+							</div>
+							<dl class="receipt-meta">
+								<div><dt>Transaction ID</dt><dd>{SELLER_TXID}</dd></div>
+								<div><dt>BTC address</dt><dd>{SELLER_ADDR}</dd></div>
+							</dl>
+							<p class="receipt-fine">
+								The seller, CoinThinkTank, will pay applicable federal and state taxes on
+								the purchase price of the shoes.
+							</p>
+						</div>
+
+						<button class="btn btn-ghost" onclick={reset}>Return to home page</button>
 					</div>
 				{/if}
 			{/if}
@@ -368,7 +405,12 @@
 		width: 20px; height: 20px; border-radius: 50%;
 		background: var(--ink); border: 3px solid var(--accent); cursor: pointer;
 	}
-	.ticks { display: flex; justify-content: space-between; margin-top: 10px; font-size: 11px; color: var(--muted); letter-spacing: 0.5px; }
+	/* Labels are positioned at their TRUE linear position on the track (not evenly
+	   spaced), so each tick lines up with the slider thumb at that value. */
+	.ticks { position: relative; height: 16px; margin-top: 10px; font-size: 11px; color: var(--muted); letter-spacing: 0.5px; }
+	.ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+	.ticks span:first-child { transform: none; }
+	.ticks span:last-child { transform: translateX(-100%); }
 
 	.splitbar { display: flex; height: 10px; border-radius: 2px; overflow: hidden; margin: 6px 0 22px; }
 	.seg-bpi { background: var(--accent); }
@@ -421,12 +463,19 @@
 	.check.big { font-size: 48px; }
 	.paid-h, .done-h { font-family: var(--serif); font-size: 22px; font-weight: 600; margin-bottom: 6px; }
 	.paid-sub { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
-	.done-grid { display: grid; gap: 0; margin: 18px 0; text-align: left; }
-	.done-grid > div { display: flex; justify-content: space-between; padding: 11px 0; border-top: 1px solid var(--line); }
-	.done-grid > div:last-child { border-bottom: 1px solid var(--line); }
+	/* Receipt cards: bold borders separate the donation from the purchase. */
+	.receipt { border: 2px solid var(--ink); border-radius: 3px; padding: 16px 18px; margin: 16px 0; text-align: left; }
+	.receipt-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 	.dl { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
-	.dv { font-family: var(--serif); font-size: 18px; font-weight: 600; }
-	.done-note { font-size: 13px; line-height: 1.55; color: #3a3a3d; margin: 14px 0 20px; }
+	.dv { font-family: var(--serif); font-size: 20px; font-weight: 600; white-space: nowrap; }
+	.receipt-meta { margin: 12px 0 0; display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 12px; }
+	.receipt-meta > div { display: grid; grid-template-columns: 110px 1fr; gap: 10px; align-items: baseline; }
+	.receipt-meta dt { margin: 0; font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+	.receipt-meta dd { margin: 0; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 10.5px; color: #3a3a3d; word-break: break-all; }
+	.receipt-fine { margin: 12px 0 0; font-size: 11px; line-height: 1.5; color: #8a8a90; }
+	@media (max-width: 560px) {
+		.receipt-meta > div { grid-template-columns: 1fr; gap: 2px; }
+	}
 
 	.foot { display: flex; justify-content: space-between; padding: 18px 0 0; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); flex-wrap: wrap; gap: 8px; }
 
