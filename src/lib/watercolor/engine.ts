@@ -77,8 +77,6 @@ export const PRESETS: Record<PhotoType, WatercolorParams> = {
 	}
 };
 
-type RGB = [number, number, number];
-
 /** Deterministic hash → [0,1) PRNG so results are stable for a given image. */
 function mulberry32(seed: number) {
 	return function () {
@@ -101,162 +99,57 @@ const linToSrgb = (c: number) => {
 };
 
 /**
- * Edge-preserving smoothing — a fast separable approximation of a bilateral
- * filter. Smooths flat regions into washes while keeping strong edges (faces,
- * horizons) from smearing. Works in linear light.
+ * Guided filter (He, Sun & Tang 2010) — O(n) edge-preserving smoother built from
+ * box blurs. This is the watercolor abstraction workhorse: it flattens flat
+ * regions (skin, sky) into smooth washes while KEEPING real edges crisp, WITHOUT
+ * the hard label regions that k-means produced (which caused every cutout/hole
+ * artifact). Self-guided (guide = the image itself), run per channel.
+ *
+ *   mean_I  = f(I);  mean_II = f(I*I);  var = mean_II - mean_I^2
+ *   a = var / (var + eps);  b = mean_I - a*mean_I
+ *   q = f(a)*I + f(b)
+ *
+ * `eps` sets the edge threshold (bigger = more smoothing). `radius` is the box
+ * window. Reduces to ~5 box blurs per channel — fast enough at working size.
  */
-function edgePreservingSmooth(
+function guidedFilter(
 	data: Float32Array,
 	w: number,
 	h: number,
 	radius: number,
-	sigmaColor: number
+	eps: number,
+	iters = 1
 ): Float32Array {
-	if (radius < 1) return data;
-	const out = new Float32Array(data.length);
-	const r = Math.round(radius);
-	const invColor = 1 / (2 * sigmaColor * sigmaColor);
-
-	// Two passes (horizontal, then vertical) — cheap, visually close to 2D bilateral.
-	const pass = (src: Float32Array, dst: Float32Array, horizontal: boolean) => {
-		for (let y = 0; y < h; y++) {
-			for (let x = 0; x < w; x++) {
-				const i = (y * w + x) * 3;
-				const cr = src[i];
-				const cg = src[i + 1];
-				const cb = src[i + 2];
-				let ar = 0,
-					ag = 0,
-					ab = 0,
-					wsum = 0;
-				for (let k = -r; k <= r; k++) {
-					const xx = horizontal ? x + k : x;
-					const yy = horizontal ? y : y + k;
-					if (xx < 0 || yy < 0 || xx >= w || yy >= h) continue;
-					const j = (yy * w + xx) * 3;
-					const dr = src[j] - cr;
-					const dg = src[j + 1] - cg;
-					const db = src[j + 2] - cb;
-					const colorDist = dr * dr + dg * dg + db * db;
-					const spatial = Math.exp((-(k * k) / (2 * r * r)) || 0);
-					const weight = spatial * Math.exp(-colorDist * invColor);
-					ar += src[j] * weight;
-					ag += src[j + 1] * weight;
-					ab += src[j + 2] * weight;
-					wsum += weight;
-				}
-				dst[i] = ar / wsum;
-				dst[i + 1] = ag / wsum;
-				dst[i + 2] = ab / wsum;
-			}
-		}
-	};
-
-	const tmp = new Float32Array(data.length);
-	pass(data, tmp, true);
-	pass(tmp, out, false);
-	return out;
-}
-
-/**
- * Reduce the image to a small set of color "washes" via a lightweight k-means in
- * linear RGB. This is what gives watercolor its flat, layered-pigment look
- * instead of smooth photographic gradients.
- */
-function quantizeToWashes(
-	data: Float32Array,
-	w: number,
-	h: number,
-	k: number,
-	rand: () => number
-): { out: Float32Array; labels: Uint16Array } {
 	const n = w * h;
-	const centers: RGB[] = [];
-	// Seed centers from random pixels.
-	for (let c = 0; c < k; c++) {
-		const p = Math.floor(rand() * n) * 3;
-		centers.push([data[p], data[p + 1], data[p + 2]]);
-	}
-	const labels = new Uint16Array(n);
-	const iters = 6;
+	let src = data;
 	for (let it = 0; it < iters; it++) {
-		// Assign
-		for (let p = 0; p < n; p++) {
-			const i = p * 3;
-			let best = 0;
-			let bestD = Infinity;
-			for (let c = 0; c < k; c++) {
-				const dr = data[i] - centers[c][0];
-				const dg = data[i + 1] - centers[c][1];
-				const db = data[i + 2] - centers[c][2];
-				const d = dr * dr + dg * dg + db * db;
-				if (d < bestD) {
-					bestD = d;
-					best = c;
-				}
+		const out = new Float32Array(src.length);
+		for (let c = 0; c < 3; c++) {
+			// Pull channel c into scalar buffers.
+			const I = new Float32Array(n);
+			const II = new Float32Array(n);
+			for (let i = 0; i < n; i++) {
+				const v = src[i * 3 + c];
+				I[i] = v;
+				II[i] = v * v;
 			}
-			labels[p] = best;
-		}
-		// Update
-		const sum = Array.from({ length: k }, () => [0, 0, 0, 0] as number[]);
-		for (let p = 0; p < n; p++) {
-			const i = p * 3;
-			const c = labels[p];
-			sum[c][0] += data[i];
-			sum[c][1] += data[i + 1];
-			sum[c][2] += data[i + 2];
-			sum[c][3]++;
-		}
-		for (let c = 0; c < k; c++) {
-			if (sum[c][3] > 0) {
-				centers[c][0] = sum[c][0] / sum[c][3];
-				centers[c][1] = sum[c][1] / sum[c][3];
-				centers[c][2] = sum[c][2] / sum[c][3];
+			const meanI = blurScalar(I, w, h, radius);
+			const meanII = blurScalar(II, w, h, radius);
+			const a = new Float32Array(n);
+			const b = new Float32Array(n);
+			for (let i = 0; i < n; i++) {
+				const varI = Math.max(0, meanII[i] - meanI[i] * meanI[i]);
+				const ai = varI / (varI + eps);
+				a[i] = ai;
+				b[i] = meanI[i] - ai * meanI[i];
 			}
+			const meanA = blurScalar(a, w, h, radius);
+			const meanB = blurScalar(b, w, h, radius);
+			for (let i = 0; i < n; i++) out[i * 3 + c] = meanA[i] * src[i * 3 + c] + meanB[i];
 		}
+		src = out;
 	}
-	const out = new Float32Array(data.length);
-	for (let p = 0; p < n; p++) {
-		const c = labels[p];
-		const i = p * 3;
-		out[i] = centers[c][0];
-		out[i + 1] = centers[c][1];
-		out[i + 2] = centers[c][2];
-	}
-	return { out, labels };
-}
-
-/** Sobel edge magnitude from the wash labels → where pigment pools & darkens. */
-function washEdges(labels: Uint16Array, w: number, h: number): Float32Array {
-	const edge = new Float32Array(w * h);
-	for (let y = 1; y < h - 1; y++) {
-		for (let x = 1; x < w - 1; x++) {
-			const p = y * w + x;
-			const l = labels[p];
-			// Count differing 4-neighbours → boundary strength.
-			let diff = 0;
-			if (labels[p - 1] !== l) diff++;
-			if (labels[p + 1] !== l) diff++;
-			if (labels[p - w] !== l) diff++;
-			if (labels[p + w] !== l) diff++;
-			edge[p] = diff / 4;
-		}
-	}
-	// Light blur so rims feel wet, not pixelated.
-	const blurred = new Float32Array(w * h);
-	for (let y = 1; y < h - 1; y++) {
-		for (let x = 1; x < w - 1; x++) {
-			const p = y * w + x;
-			blurred[p] =
-				(edge[p] * 4 +
-					edge[p - 1] +
-					edge[p + 1] +
-					edge[p - w] +
-					edge[p + w]) /
-				8;
-		}
-	}
-	return blurred;
+	return src;
 }
 
 /** Value-noise field for paper tooth & granulation (cheap, tileable-ish). */
@@ -433,133 +326,195 @@ export function renderWatercolor(
 	// We work in "pigment density" space: 0 = bare paper (white), 1 = full pigment.
 	// Light always comes from the paper beneath, so everything stays luminous.
 
-	// 1 — Edge-preserving abstraction → simplified shapes (the artist's "drawing").
-	const smoothed = edgePreservingSmooth(lin, w, h, p.smoothRadius, 0.12);
+	// 1 - Abstraction via GUIDED FILTER (replaces k-means entirely). Flattens skin/
+	//     sky into smooth washes while keeping eye/lip/horizon edges - no label
+	//     regions, so none of the boundary artifacts k-means caused. Radius & eps
+	//     scale with smoothRadius; two light iterations for a clean painterly base.
+	const gfR = Math.max(4, Math.round(p.smoothRadius * 2.5));
+	const gfEps = 0.015 + p.smoothRadius * 0.004;
+	const base = guidedFilter(lin, w, h, gfR, gfEps, 2);
 
-	// 2 — Soft washes. Quantize ONLY lightly, mostly to stabilize large flats, then
-	//     blend heavily back toward the smoothed image so we keep continuous tone
-	//     (no posterized bands) and blur boundaries so washes bleed, not snap.
-	const { out: washed } = quantizeToWashes(smoothed, w, h, p.washLevels, rand);
-	const softWash = new Float32Array(washed.length);
-	for (let i = 0; i < washed.length; i++) softWash[i] = washed[i] * 0.3 + smoothed[i] * 0.7;
-	// Bleed radius scales with the "bleed" param — wet paper spreads pigment.
-	const bleedR = 1 + p.bleed * 1.6;
-	const bled = blurRGB(softWash, w, h, bleedR);
-
-	// 3 — Wet edges from the IMAGE's real tonal gradient (eyes, nose, hairline),
-	//     NOT from quantize-region labels (which caused cutout outlines). Pigment
-	//     migrates to and pools at genuine edges as a wash dries. Luminance Sobel on
-	//     the smoothed image → soft bloom. This follows the face, not blocky regions.
-	const lum = new Float32Array(w * h);
+	// 2 - Feathered luminance washes (SOFT posterize). Band LUMINANCE only (hue stays
+	//     continuous -> no color-cell seams) with smoothstep transitions so there are
+	//     no hard edges. Keeps chroma from `base`, recombines. Then bleed so washes run.
+	const baseLum = new Float32Array(w * h);
 	for (let i = 0; i < w * h; i++)
-		lum[i] = 0.299 * smoothed[i * 3] + 0.587 * smoothed[i * 3 + 1] + 0.114 * smoothed[i * 3 + 2];
-	const rawEdges = new Float32Array(w * h);
+		baseLum[i] = 0.299 * base[i * 3] + 0.587 * base[i * 3 + 1] + 0.114 * base[i * 3 + 2];
+	const bands = Math.max(4, Math.min(8, Math.round(p.washLevels * 0.45)));
+	const washLum = new Float32Array(w * h);
+	for (let i = 0; i < w * h; i++) {
+		const L = Math.min(0.999999, Math.max(0, baseLum[i]));
+		const s = L * bands;
+		const lo = Math.floor(s);
+		let f = s - lo;
+		const tw = 0.42; // feather: flat band center, smoothstep across the transition
+		f = f < tw ? 0 : f > 1 - tw ? 1 : (f - tw) / (1 - 2 * tw);
+		const ft = f * f * (3 - 2 * f);
+		washLum[i] = (lo + ft) / bands;
+	}
+	const washed = new Float32Array(w * h * 3);
+	for (let i = 0; i < w * h; i++) {
+		const ratio = baseLum[i] > 1e-4 ? washLum[i] / baseLum[i] : 1;
+		washed[i * 3] = base[i * 3] * ratio;
+		washed[i * 3 + 1] = base[i * 3 + 1] * ratio;
+		washed[i * 3 + 2] = base[i * 3 + 2] * ratio;
+	}
+	// Bleed radius scales with the "bleed" param - wet paper spreads pigment.
+	const bleedR = 1 + p.bleed * 1.3;
+	const bled = blurRGB(washed, w, h, bleedR);
+
+	// 3 - Wet edges from the ABSTRACTED luminance gradient (Curtis/Bousseau edge
+	//     darkening on the SMOOTH field). Gated so only strong boundaries pool (kills
+	//     near-white paper-hole rings); pooled density is biased one step into the
+	//     DARKER side so the rim reads as pigment accumulating inside a drying wash.
+	const edgeMag = new Float32Array(w * h);
+	const edgeGx = new Float32Array(w * h);
+	const edgeGy = new Float32Array(w * h);
 	for (let y = 1; y < h - 1; y++) {
 		for (let x = 1; x < w - 1; x++) {
 			const pi = y * w + x;
 			const gx =
-				lum[pi - w - 1] + 2 * lum[pi - 1] + lum[pi + w - 1] -
-				lum[pi - w + 1] - 2 * lum[pi + 1] - lum[pi + w + 1];
+				baseLum[pi - w - 1] + 2 * baseLum[pi - 1] + baseLum[pi + w - 1] -
+				baseLum[pi - w + 1] - 2 * baseLum[pi + 1] - baseLum[pi + w + 1];
 			const gy =
-				lum[pi - w - 1] + 2 * lum[pi - w] + lum[pi - w + 1] -
-				lum[pi + w - 1] - 2 * lum[pi + w] - lum[pi + w + 1];
-			// Soft response: real edges pool pigment, gentle gradients barely register.
-			const mag = Math.sqrt(gx * gx + gy * gy);
-			rawEdges[pi] = Math.min(1, mag * 1.6);
+				baseLum[pi - w - 1] + 2 * baseLum[pi - w] + baseLum[pi - w + 1] -
+				baseLum[pi + w - 1] - 2 * baseLum[pi + w] - baseLum[pi + w + 1];
+			edgeGx[pi] = gx;
+			edgeGy[pi] = gy;
+			edgeMag[pi] = Math.sqrt(gx * gx + gy * gy);
 		}
 	}
-	// `localDetail` = how textured each region is, used to PROTECT smooth skin from
-	// granulation noise (skin is flat → low detail → suppress grain there).
-	const localDetail = blurScalar(rawEdges, w, h, 3);
-	const edgeBloom = blurScalar(rawEdges, w, h, 1 + p.bleed);
+	const EDGE_GATE = 0.05;
+	const pooled = new Float32Array(w * h);
+	for (let y = 1; y < h - 1; y++) {
+		for (let x = 1; x < w - 1; x++) {
+			const pi = y * w + x;
+			const m = edgeMag[pi];
+			if (m < EDGE_GATE) continue;
+			const strength = Math.min(1, (m - EDGE_GATE) * 3.5);
+			// Gradient points toward brighter; step the opposite way -> darker side.
+			const tx = Math.min(w - 1, Math.max(0, x - Math.sign(edgeGx[pi])));
+			const ty = Math.min(h - 1, Math.max(0, y - Math.sign(edgeGy[pi])));
+			const ti = ty * w + tx;
+			if (strength > pooled[ti]) pooled[ti] = strength;
+		}
+	}
+	const edgeBloom = blurScalar(pooled, w, h, Math.max(1, Math.round(1 + p.bleed * 0.6)));
+	// `localDetail` = how textured each region is -> modulate granulation (flat skin ->
+	// low detail -> suppress grain; hair/clothing -> grain shows).
+	const localDetail = blurScalar(edgeMag, w, h, 3);
 
-	// 4 — Pigment fields. Turbulence = uneven water flow; fine tooth = paper grain;
+	// 4 - Pigment fields. Turbulence = uneven water flow; fine tooth = paper grain;
 	//     granulation grid = heavier pigment settling into cold-press valleys.
 	const turb = turbulence(w, h, 14, 5, rand); // large organic density variation
 	const flow = turbulence(w, h, 40, 3, rand); // low-freq "where the water pooled"
 	const tooth = noiseField(w, h, 2.0, rand);
 	const gran = noiseField(w, h, 4.5, rand);
 
-	// Pigment warp: displace the bleed sampling along the flow gradient so color
-	// runs off its edges like wet paint. Precompute a displacement from flow.
+	// Hand-tremor WOBBLE: two LOW-frequency noise octaves offset the final sample
+	//   coords (Bousseau UV-offset). Low frequency is the whole secret - high-freq
+	//   warp was the old "noisy" look. Same fields for color & edges -> stay registered.
+	const warpBig = turbulence(w, h, 80, 2, rand);
+	const warpBigY = turbulence(w, h, 80, 2, rand);
+	const warpSm = turbulence(w, h, 25, 2, rand);
+	const warpSmY = turbulence(w, h, 25, 2, rand);
+	const ampBig = p.bleed * 0.9;
+	const ampSm = p.bleed * 0.3;
+
 	const result = wctx.createImageData(w, h);
-	const sample = (buf: Float32Array, x: number, y: number, c: number) => {
+	// Bilinear sampler so the wobble reads as a smooth wiggle, not a stair-step.
+	const sampleLin = (buf: Float32Array, x: number, y: number, c: number) => {
+		const x0 = Math.min(w - 1, Math.max(0, Math.floor(x)));
+		const y0 = Math.min(h - 1, Math.max(0, Math.floor(y)));
+		const x1 = Math.min(w - 1, x0 + 1);
+		const y1 = Math.min(h - 1, y0 + 1);
+		const fx = Math.min(1, Math.max(0, x - x0));
+		const fy = Math.min(1, Math.max(0, y - y0));
+		const a = buf[(y0 * w + x0) * 3 + c];
+		const bb = buf[(y0 * w + x1) * 3 + c];
+		const cc = buf[(y1 * w + x0) * 3 + c];
+		const d = buf[(y1 * w + x1) * 3 + c];
+		return a + (bb - a) * fx + (cc - a) * fy + (a - bb - cc + d) * fx * fy;
+	};
+	const sampleScalar = (buf: Float32Array, x: number, y: number) => {
 		const xi = Math.min(w - 1, Math.max(0, Math.round(x)));
 		const yi = Math.min(h - 1, Math.max(0, Math.round(y)));
-		return buf[(yi * w + xi) * 3 + c];
+		return buf[yi * w + xi];
 	};
 
 	for (let y = 0; y < h; y++) {
 		for (let x = 0; x < w; x++) {
 			const pi = y * w + x;
-			const i3 = pi * 3;
 
-			// Wet displacement — pigment wanders. Strength scales with bleed. Kept
-			// modest so boundaries soften rather than shredding into noisy fingers.
-			const warp = (flow[pi] - 0.5) * p.bleed * 1.4;
-			const wx = x + warp;
-			const wy = y + (turb[pi] - 0.5) * p.bleed * 1.4;
+			// Wobble displacement (two octaves, low freq) applied to the sample coords.
+			const wx = x + (warpBig[pi] - 0.5) * 2 * ampBig + (warpSm[pi] - 0.5) * 2 * ampSm;
+			const wy = y + (warpBigY[pi] - 0.5) * 2 * ampBig + (warpSmY[pi] - 0.5) * 2 * ampSm;
 
-			// Sample the bled wash (linear) and move to PERCEPTUAL sRGB [0,1]. All the
-			// watercolor shaping below happens in sRGB so the photo's tonal range is
-			// preserved and lights stay light (linear-space density crushed everything).
-			let r = linToSrgb(sample(bled, wx, wy, 0)) / 255;
-			let g = linToSrgb(sample(bled, wx, wy, 1)) / 255;
-			let b = linToSrgb(sample(bled, wx, wy, 2)) / 255;
+			// Sample the bled wash (linear reflectance [0,1]).
+			let lr = Math.max(1e-4, Math.min(1, sampleLin(bled, wx, wy, 0)));
+			let lg = Math.max(1e-4, Math.min(1, sampleLin(bled, wx, wy, 1)));
+			let lb = Math.max(1e-4, Math.min(1, sampleLin(bled, wx, wy, 2)));
 
-			// Saturation around perceptual luma (watercolor pigments are vivid).
-			const luma0 = 0.299 * r + 0.587 * g + 0.114 * b;
-			r = Math.min(1, Math.max(0, luma0 + (r - luma0) * p.saturation));
-			g = Math.min(1, Math.max(0, luma0 + (g - luma0) * p.saturation));
-			b = Math.min(1, Math.max(0, luma0 + (b - luma0) * p.saturation));
+			// Saturation around linear luma (vivid pigment), staying in linear light.
+			const lLuma = 0.299 * lr + 0.587 * lg + 0.114 * lb;
+			lr = Math.min(1, Math.max(1e-4, lLuma + (lr - lLuma) * p.saturation));
+			lg = Math.min(1, Math.max(1e-4, lLuma + (lg - lLuma) * p.saturation));
+			lb = Math.min(1, Math.max(1e-4, lLuma + (lb - lLuma) * p.saturation));
 
-			// Pigment "load" = how far from bare paper this wash sits (0 = paper, 1 = dark).
-			const load = 1 - luma0;
-			const detail = Math.min(1, localDetail[pi] * 2.2); // 0 = flat skin, 1 = texture
+			// -> OPTICAL-DENSITY space (D = -log R). Pigment ADDS density here; this is
+			//    why layered washes glow like real pigment instead of a dead multiply.
+			let Dr = -Math.log(lr);
+			let Dg = -Math.log(lg);
+			let Db = -Math.log(lb);
+			const loadN = 1 - lLuma; // perceptual 0..1 pigment load for the envelopes
+			const detail = Math.min(1, sampleScalar(localDetail, wx, wy) * 2.4);
 
-			// 4a — turbulent wash density: water carries more/less pigment in irregular
-			//      fingers. Enveloped toward mid washes AND suppressed on flat skin so
-			//      faces stay smooth (variation lives in backgrounds & textured areas).
-			const washEnv = load * (1.1 - load);
-			const densAmt = 0.18 + 0.22 * detail;
+			// 4a - turbulent wash density: water carries more/less pigment in irregular
+			//      fingers. Enveloped toward mid washes, suppressed on flat skin.
+			const washEnv = loadN * (1.1 - loadN);
+			const densAmt = 0.14 + 0.18 * detail;
 			const densMod = ((turb[pi] - 0.5) * densAmt + (flow[pi] - 0.5) * densAmt * 0.6) * washEnv;
 
-			// 4b — edge blooms: pigment pools and DARKENS at real tonal edges. Soft and
-			//      multiplicative so it reads as wet pooling, not an inked outline.
-			const bloom = edgeBloom[pi] * p.edgeDarkening * (0.6 + turb[pi] * 0.4) * 0.35;
+			// 4b - edge pooling: pooled density darkens toward pigment color at real
+			//      edges. Added in D-space -> glows like wet pigment, not an ink line.
+			const bloom = sampleScalar(edgeBloom, wx, wy) * p.edgeDarkening * (0.55 + turb[pi] * 0.45) * 0.55;
 
-			// 4c — granulation: grains settle into tooth, only in MID washes AND only
-			//      where there's already texture. detail-gating keeps it OFF faces.
-			const midEnv = 4 * load * (1 - load);
-			const granMod = (gran[pi] - 0.5) * p.granulation * 0.28 * midEnv * detail;
+			// 4c - granulation: grains settle into tooth. Modulated by BOTH pigment
+			//      density (lives in darks, ~absent on light skin) AND local texture.
+			//      This is the fix that keeps faces clean & luminous.
+			const densMask = Math.min(1, Math.max(0, (loadN - 0.22) / 0.5));
+			const granMod = (gran[pi] - 0.5) * p.granulation * 0.45 * densMask * (0.35 + 0.65 * detail);
 
-			// 4d — paper tooth: faint mottle where the wash is THIN, texture areas only.
-			const toothMod = (tooth[pi] - 0.5) * p.paper * 0.06 * (1 - load) * (0.3 + 0.7 * detail);
+			// 4d - paper tooth: faint density mottle across the painting.
+			const toothMod = (tooth[pi] - 0.5) * p.paper * 0.12 * (0.4 + 0.6 * detail);
 
-			// Combine wash-shaping into a single pigment factor. Density/granulation
-			// variation is damped on the lighten side (×0.5) so grain can't punch holes
-			// in light washes; pooling only darkens.
-			const shaped = Math.min(1.3, Math.max(0, load * (1 + densMod) + bloom + granMod * 0.5 + toothMod * 0.5));
-			// Pigment multiplies the light reaching paper: darker where shaped is high.
-			const k = load > 1e-4 ? shaped / load : 1;
-			let dr = 1 - Math.min(1, (1 - r) * k);
-			let dg = 1 - Math.min(1, (1 - g) * k);
-			let db = 1 - Math.min(1, (1 - b) * k);
+			// Accumulate modulations as a SIGNED density offset (Beer-Lambert: density
+			// adds). densMod/toothMod are signed (lighten or darken); bloom/granMod only
+			// darken. A gentle exposure lift keeps the result luminous, not a dark photo.
+			const lift = 0.2 + 0.5 * loadN; // exposure lift: open shadows toward paper so
+			// the painting reads luminous (lifted) rather than a dark reproduction
+			const dD = densMod + bloom + granMod + toothMod - lift;
+			Dr = Math.max(0, Dr + dD);
+			Dg = Math.max(0, Dg + dD);
+			Db = Math.max(0, Db + dD);
 
-			// 5 — paper glow: gently lift ONLY the already-near-white wash toward warm
-			//     cream paper, smoothly (no hard threshold → no blobby holes). whiteBleed
-			//     controls how luminous the highlights read.
-			const lgt = (dr + dg + db) / 3;
-			const glow = p.whiteBleed * 0.3 * Math.max(0, (lgt - 0.55) / 0.45); // smooth ramp
-			dr = dr + (0.99 - dr) * glow;
-			dg = dg + (0.985 - dg) * glow;
-			db = db + (0.96 - db) * glow;
-			const or = dr, og = dg, ob = db;
+			// -> back to reflectance, then sRGB.
+			let r = linToSrgb(Math.exp(-Dr)) / 255;
+			let g = linToSrgb(Math.exp(-Dg)) / 255;
+			let b = linToSrgb(Math.exp(-Db)) / 255;
+
+			// 5 - paper glow: warm cream paper shows through the THIN highlight washes,
+			//     smoothly (no hard threshold -> no blobby holes).
+			const lgt = (r + g + b) / 3;
+			const glow = p.whiteBleed * 0.28 * Math.max(0, (lgt - 0.6) / 0.4);
+			r = r + (0.99 - r) * glow;
+			g = g + (0.985 - g) * glow;
+			b = b + (0.96 - b) * glow;
 
 			const o = pi * 4;
-			result.data[o] = Math.max(0, Math.min(255, Math.round(or * 255)));
-			result.data[o + 1] = Math.max(0, Math.min(255, Math.round(og * 255)));
-			result.data[o + 2] = Math.max(0, Math.min(255, Math.round(ob * 255)));
+			result.data[o] = Math.max(0, Math.min(255, Math.round(r * 255)));
+			result.data[o + 1] = Math.max(0, Math.min(255, Math.round(g * 255)));
+			result.data[o + 2] = Math.max(0, Math.min(255, Math.round(b * 255)));
 			result.data[o + 3] = 255;
 		}
 	}
