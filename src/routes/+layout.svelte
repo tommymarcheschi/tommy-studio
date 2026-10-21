@@ -12,7 +12,10 @@
 	let isHome = $derived($page.url.pathname === '/');
 	// Standalone routes render their own chrome (e.g. the BMAG mock checkout) —
 	// skip the portfolio nav/footer/transitions for these.
-	let bare = $derived($page.url.pathname.startsWith('/ross-ulbricht-auction-test'));
+	let bare = $derived(
+		$page.url.pathname.startsWith('/ross-ulbricht-auction-test') ||
+		$page.url.pathname.startsWith('/watercolor')
+	);
 	let mobileMenuOpen = $state(false);
 	let showLoader = $state(false);
 
