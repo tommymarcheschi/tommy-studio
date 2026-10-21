@@ -304,7 +304,7 @@
 					<img src={resultUrl} alt="watercolor" />
 				</div>
 				<div class="order-form">
-					<h2>Order your framed print</h2>
+					<h2>Request your framed print</h2>
 
 					<div class="field">
 						<span class="label">Size</span>
@@ -351,14 +351,14 @@
 						<strong>${total}</strong>
 					</div>
 					<p class="pay-note">
-						No payment is collected here yet — once you submit, Tommy confirms and sends a
-						secure payment link. (Stripe checkout drops in here.)
+						Submitting sends your print request to Tommy, who’ll personally confirm the
+						details and arrange payment &amp; shipping with you.
 					</p>
 
 					<div class="actions">
 						<button class="ghost" onclick={() => (step = 'studio')}>← Back</button>
 						<button class="primary" onclick={placeOrder} disabled={placing}>
-							{placing ? 'Placing…' : 'Place order'}
+							{placing ? 'Sending…' : 'Request print'}
 						</button>
 					</div>
 				</div>
@@ -371,12 +371,12 @@
 		<section class="done">
 			<div class="done-card">
 				<div class="done-icon">✓</div>
-				<h2>Order received</h2>
-				<p>Order <code>{orderResult.orderId}</code> · ${orderResult.total}</p>
+				<h2>Request sent</h2>
+				<p>Request <code>{orderResult.orderId}</code> · ${orderResult.total} estimate</p>
 				<p class="muted">
 					{orderResult.notified
-						? 'Tommy has been notified and will send a payment link shortly.'
-						: 'Your order is saved. Tommy will reach out to confirm payment & shipping.'}
+						? 'Tommy has been notified and will reach out to confirm the details, payment & shipping.'
+						: 'Your request is saved. Tommy will reach out to confirm the details, payment & shipping.'}
 				</p>
 				<button class="primary" onclick={reset}>Make another</button>
 			</div>
