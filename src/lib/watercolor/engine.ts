@@ -42,38 +42,38 @@ export const PRESETS: Record<PhotoType, WatercolorParams> = {
 	// Portraits: protect the face. Gentle smoothing, more washes to keep features,
 	// soft edges, restrained bleed so eyes/mouth stay readable.
 	portrait: {
-		washLevels: 10,
-		smoothRadius: 3,
-		edgeDarkening: 0.45,
-		granulation: 0.35,
-		paper: 0.5,
-		bleed: 2,
-		saturation: 1.05,
-		whiteBleed: 0.5
+		washLevels: 14,
+		smoothRadius: 4,
+		edgeDarkening: 0.5,
+		granulation: 0.4,
+		paper: 0.55,
+		bleed: 2.5,
+		saturation: 1.1,
+		whiteBleed: 0.6
 	},
 	// Landscapes: looser, more atmospheric. Fewer washes, bigger bleed & granulation,
 	// stronger edge pooling for that classic en-plein-air feel.
 	landscape: {
-		washLevels: 7,
-		smoothRadius: 5,
-		edgeDarkening: 0.6,
-		granulation: 0.55,
-		paper: 0.6,
-		bleed: 4,
-		saturation: 1.2,
-		whiteBleed: 0.4
+		washLevels: 10,
+		smoothRadius: 6,
+		edgeDarkening: 0.65,
+		granulation: 0.6,
+		paper: 0.65,
+		bleed: 4.5,
+		saturation: 1.25,
+		whiteBleed: 0.5
 	},
 	// Cartoons / illustrations: crisp shapes already, so keep washes graphic,
 	// light smoothing, strong edge ink, minimal bleed.
 	cartoon: {
-		washLevels: 12,
-		smoothRadius: 2,
-		edgeDarkening: 0.7,
-		granulation: 0.25,
-		paper: 0.45,
-		bleed: 1,
-		saturation: 1.15,
-		whiteBleed: 0.55
+		washLevels: 14,
+		smoothRadius: 3,
+		edgeDarkening: 0.75,
+		granulation: 0.3,
+		paper: 0.5,
+		bleed: 1.8,
+		saturation: 1.2,
+		whiteBleed: 0.6
 	}
 };
 
@@ -287,6 +287,102 @@ function noiseField(w: number, h: number, scale: number, rand: () => number): Fl
 	return out;
 }
 
+/**
+ * Multi-octave turbulence (fractal noise). This is what gives watercolor its
+ * organic, never-flat pigment density — water carries pigment in irregular
+ * fingers and pools. Sums several noiseField octaves at halving amplitude.
+ * Returned values are normalized to ~[0,1].
+ */
+function turbulence(
+	w: number,
+	h: number,
+	baseScale: number,
+	octaves: number,
+	rand: () => number
+): Float32Array {
+	const out = new Float32Array(w * h);
+	let amp = 1;
+	let totalAmp = 0;
+	let scale = baseScale;
+	for (let o = 0; o < octaves; o++) {
+		const layer = noiseField(w, h, scale, rand);
+		for (let i = 0; i < out.length; i++) out[i] += layer[i] * amp;
+		totalAmp += amp;
+		amp *= 0.5;
+		scale = Math.max(1.5, scale * 0.5);
+	}
+	for (let i = 0; i < out.length; i++) out[i] /= totalAmp;
+	return out;
+}
+
+/** Separable box blur (fast Gaussian approx) over an RGB linear buffer, radius px. */
+function blurRGB(src: Float32Array, w: number, h: number, radius: number): Float32Array {
+	if (radius < 1) return src.slice();
+	const r = Math.round(radius);
+	const tmp = new Float32Array(src.length);
+	const out = new Float32Array(src.length);
+	const norm = 1 / (2 * r + 1);
+	// Horizontal
+	for (let y = 0; y < h; y++) {
+		for (let c = 0; c < 3; c++) {
+			let acc = 0;
+			for (let k = -r; k <= r; k++) {
+				const xx = Math.min(w - 1, Math.max(0, k));
+				acc += src[(y * w + xx) * 3 + c];
+			}
+			for (let x = 0; x < w; x++) {
+				tmp[(y * w + x) * 3 + c] = acc * norm;
+				const xAdd = Math.min(w - 1, x + r + 1);
+				const xSub = Math.max(0, x - r);
+				acc += src[(y * w + xAdd) * 3 + c] - src[(y * w + xSub) * 3 + c];
+			}
+		}
+	}
+	// Vertical
+	for (let x = 0; x < w; x++) {
+		for (let c = 0; c < 3; c++) {
+			let acc = 0;
+			for (let k = -r; k <= r; k++) {
+				const yy = Math.min(h - 1, Math.max(0, k));
+				acc += tmp[(yy * w + x) * 3 + c];
+			}
+			for (let y = 0; y < h; y++) {
+				out[(y * w + x) * 3 + c] = acc * norm;
+				const yAdd = Math.min(h - 1, y + r + 1);
+				const ySub = Math.max(0, y - r);
+				acc += tmp[(yAdd * w + x) * 3 + c] - tmp[(ySub * w + x) * 3 + c];
+			}
+		}
+	}
+	return out;
+}
+
+/** Blur a single-channel scalar field, radius px (separable box). */
+function blurScalar(src: Float32Array, w: number, h: number, radius: number): Float32Array {
+	if (radius < 1) return src.slice();
+	const r = Math.round(radius);
+	const tmp = new Float32Array(src.length);
+	const out = new Float32Array(src.length);
+	const norm = 1 / (2 * r + 1);
+	for (let y = 0; y < h; y++) {
+		let acc = 0;
+		for (let k = -r; k <= r; k++) acc += src[y * w + Math.min(w - 1, Math.max(0, k))];
+		for (let x = 0; x < w; x++) {
+			tmp[y * w + x] = acc * norm;
+			acc += src[y * w + Math.min(w - 1, x + r + 1)] - src[y * w + Math.max(0, x - r)];
+		}
+	}
+	for (let x = 0; x < w; x++) {
+		let acc = 0;
+		for (let k = -r; k <= r; k++) acc += tmp[Math.min(h - 1, Math.max(0, k)) * w + x];
+		for (let y = 0; y < h; y++) {
+			out[y * w + x] = acc * norm;
+			acc += tmp[Math.min(h - 1, y + r + 1) * w + x] - tmp[Math.max(0, y - r) * w + x];
+		}
+	}
+	return out;
+}
+
 export interface RenderResult {
 	/** Canvas with the finished painting, ready to toDataURL/toBlob. */
 	canvas: HTMLCanvasElement;
@@ -332,114 +428,138 @@ export function renderWatercolor(
 		lin[p2 * 3 + 2] = srgbToLin(img.data[p2 * 4 + 2]);
 	}
 
-	// 1 — Edge-preserving abstraction
+	// ── Watercolor model ────────────────────────────────────────────────────────
+	// The look comes from TRANSLUCENT pigment over white paper, not opaque fills.
+	// We work in "pigment density" space: 0 = bare paper (white), 1 = full pigment.
+	// Light always comes from the paper beneath, so everything stays luminous.
+
+	// 1 — Edge-preserving abstraction → simplified shapes (the artist's "drawing").
 	const smoothed = edgePreservingSmooth(lin, w, h, p.smoothRadius, 0.12);
 
-	// 2 — Collapse into washes
+	// 2 — Soft washes. Quantize for structure, then BLEND back toward the smoothed
+	//     image and blur the boundaries so washes bleed into each other instead of
+	//     snapping (this kills the posterized/cutout look).
 	const { out: washed, labels } = quantizeToWashes(smoothed, w, h, p.washLevels, rand);
+	const softWash = new Float32Array(washed.length);
+	for (let i = 0; i < washed.length; i++) softWash[i] = washed[i] * 0.55 + smoothed[i] * 0.45;
+	// Bleed radius scales with the "bleed" param — wet paper spreads pigment.
+	const bleedR = 1 + p.bleed * 1.6;
+	const bled = blurRGB(softWash, w, h, bleedR);
 
-	// 3 — Wet-edge map
-	const edges = washEdges(labels, w, h);
+	// 3 — Wet edges, softened into irregular blooms (not thin uniform lines).
+	const rawEdges = washEdges(labels, w, h);
+	const edgeBloom = blurScalar(rawEdges, w, h, 1 + p.bleed);
 
-	// 4/5 — Paper tooth (fine) + granulation (coarse) noise
-	const tooth = noiseField(w, h, 2.2, rand);
-	const gran = noiseField(w, h, 5.5, rand);
+	// 4 — Pigment fields. Turbulence = uneven water flow; fine tooth = paper grain;
+	//     granulation grid = heavier pigment settling into cold-press valleys.
+	const turb = turbulence(w, h, 14, 5, rand); // large organic density variation
+	const flow = turbulence(w, h, 40, 3, rand); // low-freq "where the water pooled"
+	const tooth = noiseField(w, h, 2.0, rand);
+	const gran = noiseField(w, h, 4.5, rand);
 
-	// Compose: start from washed pigment, then physically modulate.
+	// Pigment warp: displace the bleed sampling along the flow gradient so color
+	// runs off its edges like wet paint. Precompute a displacement from flow.
 	const result = wctx.createImageData(w, h);
+	const sample = (buf: Float32Array, x: number, y: number, c: number) => {
+		const xi = Math.min(w - 1, Math.max(0, Math.round(x)));
+		const yi = Math.min(h - 1, Math.max(0, Math.round(y)));
+		return buf[(yi * w + xi) * 3 + c];
+	};
+
 	for (let y = 0; y < h; y++) {
 		for (let x = 0; x < w; x++) {
 			const pi = y * w + x;
 			const i3 = pi * 3;
-			let r = washed[i3];
-			let g = washed[i3 + 1];
-			let b = washed[i3 + 2];
 
-			// Saturation in linear light around luma.
-			const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-			r = luma + (r - luma) * p.saturation;
-			g = luma + (g - luma) * p.saturation;
-			b = luma + (b - luma) * p.saturation;
+			// Wet displacement — pigment wanders. Strength scales with bleed.
+			const warp = (flow[pi] - 0.5) * p.bleed * 3.0;
+			const wx = x + warp;
+			const wy = y + (turb[pi] - 0.5) * p.bleed * 3.0;
 
-			// 3 — pigment pooling: darken toward wash edges (multiplicative).
-			const rim = edges[pi] * p.edgeDarkening;
-			const rimMul = 1 - rim * 0.7;
-			r *= rimMul;
-			g *= rimMul;
-			b *= rimMul;
+			let r = sample(bled, wx, wy, 0);
+			let g = sample(bled, wx, wy, 1);
+			let b = sample(bled, wx, wy, 2);
 
-			// 4 — granulation: pigment settles unevenly in paper valleys (darker)
-			//     and lifts on peaks (lighter) — strongest in mid/dark washes.
-			const grainPixel = (gran[pi] - 0.5) * p.granulation * 0.35 * (1 - luma * 0.5);
-			r *= 1 - grainPixel;
-			g *= 1 - grainPixel;
-			b *= 1 - grainPixel;
+			// Saturation in linear light around luma (watercolor pigments are vivid).
+			const luma0 = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+			r = luma0 + (r - luma0) * p.saturation;
+			g = luma0 + (g - luma0) * p.saturation;
+			b = luma0 + (b - luma0) * p.saturation;
 
-			// 5 — paper: in the lightest areas let the white of the paper bleed
-			//     through (watercolor can't make a true opaque white).
-			const paperWhite = tooth[pi];
-			const highlight = Math.max(0, luma - (1 - p.whiteBleed)) / Math.max(0.0001, p.whiteBleed);
-			const toWhite = highlight * p.whiteBleed * (0.6 + paperWhite * 0.4);
-			r = r + (1 - r) * toWhite;
-			g = g + (1 - g) * toWhite;
-			b = b + (1 - b) * toWhite;
+			// Convert to pigment density: paper is white, pigment subtracts light.
+			// density per channel = 1 - color. We then MODULATE density (never flat).
+			let dr = 1 - r;
+			let dg = 1 - g;
+			let db = 1 - b;
 
-			// 5b — paper tooth very subtly textures everything (cold-press grain).
-			const toothMod = 1 + (tooth[pi] - 0.5) * p.paper * 0.08;
-			r *= toothMod;
-			g *= toothMod;
-			b *= toothMod;
+			// 4a — turbulent pigment density: water carries more/less pigment in
+			//      irregular fingers. ±, centered, so some areas thin to near-paper.
+			const densMod = 1 + (turb[pi] - 0.5) * 0.5 + (flow[pi] - 0.5) * 0.35;
+			dr *= densMod;
+			dg *= densMod;
+			db *= densMod;
+
+			// 4b — edge blooms: pigment pools and DARKENS at wet boundaries, pooling
+			//      irregularly (modulated by turbulence so it's not a clean outline).
+			const bloom = edgeBloom[pi] * p.edgeDarkening * (0.6 + turb[pi] * 0.8);
+			dr += bloom * 0.9;
+			dg += bloom * 0.9;
+			db += bloom * 0.9;
+
+			// 4c — granulation: pigment settles into paper tooth valleys (more dense),
+			//      lifts off peaks (less). Strongest in the denser (darker) washes.
+			const granMod = (gran[pi] - 0.5) * p.granulation * 0.6;
+			const toothMod = (tooth[pi] - 0.5) * p.paper * 0.25;
+			const settle = (granMod + toothMod) * (0.3 + (dr + dg + db) / 3);
+			dr += settle;
+			dg += settle;
+			db += settle;
+
+			// 5 — paper breathes through: cap density so the lightest areas stay as
+			//     bare luminous paper (whiteBleed lifts the floor toward white).
+			const lift = p.whiteBleed * 0.25;
+			dr = Math.max(0, dr - lift * (1 - dr));
+			dg = Math.max(0, dg - lift * (1 - dg));
+			db = Math.max(0, db - lift * (1 - db));
+
+			// Back to color over a warm paper white (not pure #fff — real paper is cream).
+			const paperR = 0.992, paperG = 0.984, paperB = 0.965;
+			const or = Math.max(0, Math.min(1, paperR * (1 - dr)));
+			const og = Math.max(0, Math.min(1, paperG * (1 - dg)));
+			const ob = Math.max(0, Math.min(1, paperB * (1 - db)));
 
 			const o = pi * 4;
-			result.data[o] = linToSrgb(r);
-			result.data[o + 1] = linToSrgb(g);
-			result.data[o + 2] = linToSrgb(b);
+			result.data[o] = linToSrgb(or);
+			result.data[o + 1] = linToSrgb(og);
+			result.data[o + 2] = linToSrgb(ob);
 			result.data[o + 3] = 255;
 		}
 	}
-	wctx.putImageData(result, 0, 0);
 
-	// 6 — Hand wobble / wet bleed: a tiny domain warp + feathered edge, drawn onto
-	//     a paper-tinted base so the border looks like paint on a sheet, not a crop.
 	const out = document.createElement('canvas');
 	out.width = w;
 	out.height = h;
 	const octx = out.getContext('2d')!;
-	// Warm paper base
-	octx.fillStyle = '#fdfcf7';
-	octx.fillRect(0, 0, w, h);
+	octx.putImageData(result, 0, 0);
 
-	if (p.bleed > 0.5) {
-		// Draw the painting in a few slightly offset, low-alpha passes → wet bleed.
-		const passes = 3;
-		for (let s = 0; s < passes; s++) {
-			const dx = (rand() - 0.5) * p.bleed;
-			const dy = (rand() - 0.5) * p.bleed;
-			octx.globalAlpha = s === 0 ? 1 : 0.4;
-			octx.drawImage(work, dx, dy);
-		}
-		octx.globalAlpha = 1;
-	} else {
-		octx.drawImage(work, 0, 0);
-	}
-
-	// Multiply a faint paper grain over the whole thing for cohesion.
+	// 6 — Cold-press paper tooth as a final multiply, plus faint fibers, for the
+	//     tactile "painted on a sheet" cohesion.
 	const grainCanvas = document.createElement('canvas');
 	grainCanvas.width = w;
 	grainCanvas.height = h;
 	const gctx = grainCanvas.getContext('2d')!;
 	const grainImg = gctx.createImageData(w, h);
 	for (let pi = 0; pi < w * h; pi++) {
-		const v = 235 + Math.round(tooth[pi] * 20);
+		const v = 228 + Math.round(((tooth[pi] * 0.6 + turb[pi] * 0.4) * 27));
 		const o = pi * 4;
 		grainImg.data[o] = v;
 		grainImg.data[o + 1] = v;
-		grainImg.data[o + 2] = v - 4;
+		grainImg.data[o + 2] = v - 5;
 		grainImg.data[o + 3] = 255;
 	}
 	gctx.putImageData(grainImg, 0, 0);
 	octx.globalCompositeOperation = 'multiply';
-	octx.globalAlpha = p.paper * 0.5;
+	octx.globalAlpha = Math.min(0.6, p.paper * 0.55);
 	octx.drawImage(grainCanvas, 0, 0);
 	octx.globalCompositeOperation = 'source-over';
 	octx.globalAlpha = 1;
