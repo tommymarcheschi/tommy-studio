@@ -471,67 +471,76 @@ export function renderWatercolor(
 			const pi = y * w + x;
 			const i3 = pi * 3;
 
-			// Wet displacement — pigment wanders. Strength scales with bleed.
-			const warp = (flow[pi] - 0.5) * p.bleed * 3.0;
+			// Wet displacement — pigment wanders. Strength scales with bleed. Kept
+			// modest so boundaries soften rather than shredding into noisy fingers.
+			const warp = (flow[pi] - 0.5) * p.bleed * 1.4;
 			const wx = x + warp;
-			const wy = y + (turb[pi] - 0.5) * p.bleed * 3.0;
+			const wy = y + (turb[pi] - 0.5) * p.bleed * 1.4;
 
-			let r = sample(bled, wx, wy, 0);
-			let g = sample(bled, wx, wy, 1);
-			let b = sample(bled, wx, wy, 2);
+			// Sample the bled wash (linear) and move to PERCEPTUAL sRGB [0,1]. All the
+			// watercolor shaping below happens in sRGB so the photo's tonal range is
+			// preserved and lights stay light (linear-space density crushed everything).
+			let r = linToSrgb(sample(bled, wx, wy, 0)) / 255;
+			let g = linToSrgb(sample(bled, wx, wy, 1)) / 255;
+			let b = linToSrgb(sample(bled, wx, wy, 2)) / 255;
 
-			// Saturation in linear light around luma (watercolor pigments are vivid).
-			const luma0 = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-			r = luma0 + (r - luma0) * p.saturation;
-			g = luma0 + (g - luma0) * p.saturation;
-			b = luma0 + (b - luma0) * p.saturation;
+			// Saturation around perceptual luma (watercolor pigments are vivid).
+			const luma0 = 0.299 * r + 0.587 * g + 0.114 * b;
+			r = Math.min(1, Math.max(0, luma0 + (r - luma0) * p.saturation));
+			g = Math.min(1, Math.max(0, luma0 + (g - luma0) * p.saturation));
+			b = Math.min(1, Math.max(0, luma0 + (b - luma0) * p.saturation));
 
-			// Convert to pigment density: paper is white, pigment subtracts light.
-			// density per channel = 1 - color. We then MODULATE density (never flat).
-			let dr = 1 - r;
-			let dg = 1 - g;
-			let db = 1 - b;
+			// Pigment "load" = how far from bare paper this wash sits (0 = paper, 1 = dark).
+			let load = 1 - luma0;
 
-			// 4a — turbulent pigment density: water carries more/less pigment in
-			//      irregular fingers. ±, centered, so some areas thin to near-paper.
-			const densMod = 1 + (turb[pi] - 0.5) * 0.5 + (flow[pi] - 0.5) * 0.35;
-			dr *= densMod;
-			dg *= densMod;
-			db *= densMod;
+			// 5 — paper breathes through FIRST: pull the light end toward bare paper so
+			//     highlights read as untouched luminous sheet, not grey. This lifts the
+			//     white point; the effect fades out as the wash gets darker.
+			const lift = p.whiteBleed;
+			const lightLift = lift * (1 - load) * (1 - load); // strong only in lights
+			r = r + (1 - r) * lightLift;
+			g = g + (1 - g) * lightLift;
+			b = b + (1 - b) * lightLift;
+			load = Math.max(0, load - lift * (1 - load) * (1 - load));
 
-			// 4b — edge blooms: pigment pools and DARKENS at wet boundaries, pooling
-			//      irregularly (modulated by turbulence so it's not a clean outline).
-			const bloom = edgeBloom[pi] * p.edgeDarkening * (0.6 + turb[pi] * 0.8);
-			dr += bloom * 0.9;
-			dg += bloom * 0.9;
-			db += bloom * 0.9;
+			// 4a — turbulent wash density: water carries more/less pigment in irregular
+			//      fingers. Multiplies the pigment load, enveloped toward the mid/dark
+			//      washes (bare paper and solid darks stay put — variation there is mud).
+			const washEnv = load * (1.1 - load);
+			const densMod = ((turb[pi] - 0.5) * 0.28 + (flow[pi] - 0.5) * 0.18) * washEnv;
 
-			// 4c — granulation: pigment settles into paper tooth valleys (more dense),
-			//      lifts off peaks (less). Strongest in the denser (darker) washes.
-			const granMod = (gran[pi] - 0.5) * p.granulation * 0.6;
-			const toothMod = (tooth[pi] - 0.5) * p.paper * 0.25;
-			const settle = (granMod + toothMod) * (0.3 + (dr + dg + db) / 3);
-			dr += settle;
-			dg += settle;
-			db += settle;
+			// 4b — edge blooms: pigment pools and DARKENS at wet boundaries, irregularly.
+			const bloom = edgeBloom[pi] * p.edgeDarkening * (0.5 + turb[pi] * 0.7) * 0.5;
 
-			// 5 — paper breathes through: cap density so the lightest areas stay as
-			//     bare luminous paper (whiteBleed lifts the floor toward white).
-			const lift = p.whiteBleed * 0.25;
-			dr = Math.max(0, dr - lift * (1 - dr));
-			dg = Math.max(0, dg - lift * (1 - dg));
-			db = Math.max(0, db - lift * (1 - db));
+			// 4c — granulation: grains settle into tooth, visible only in MID washes.
+			const midEnv = 4 * load * (1 - load);
+			const granMod = (gran[pi] - 0.5) * p.granulation * 0.35 * midEnv;
 
-			// Back to color over a warm paper white (not pure #fff — real paper is cream).
-			const paperR = 0.992, paperG = 0.984, paperB = 0.965;
-			const or = Math.max(0, Math.min(1, paperR * (1 - dr)));
-			const og = Math.max(0, Math.min(1, paperG * (1 - dg)));
-			const ob = Math.max(0, Math.min(1, paperB * (1 - db)));
+			// 4d — paper tooth: faint mottle where the wash is THIN (lights only).
+			const toothMod = (tooth[pi] - 0.5) * p.paper * 0.08 * (1 - load);
+
+			// Combine wash-shaping into a single per-pixel darken/lighten of the load,
+			// then re-apply to the color as a multiplicative pigment layer over paper.
+			const shaped = Math.min(1, Math.max(0, load * (1 + densMod) + bloom + granMod + toothMod));
+			// Pigment multiplies the light passing through to paper: darker where shaped
+			// is high. Keep hue by scaling each channel toward its wash color.
+			const k = load > 1e-4 ? shaped / load : 1;
+			let dr = 1 - Math.min(1, (1 - r) * k);
+			let dg = 1 - Math.min(1, (1 - g) * k);
+			let db = 1 - Math.min(1, (1 - b) * k);
+
+			// dr/dg/db are final sRGB colors. Tint the lightest areas toward warm cream
+			// paper (real watercolor paper isn't pure #fff) — only where near-white.
+			const lightness = (dr + dg + db) / 3;
+			const paperMix = Math.max(0, lightness - 0.8) / 0.2; // 0 below 0.8, 1 at white
+			const or = dr * (1 - paperMix) + 0.988 * paperMix * dr + paperMix * 0.004;
+			const og = dg * (1 - paperMix) + 0.980 * paperMix * dg + paperMix * 0.0;
+			const ob = db * (1 - paperMix) + 0.958 * paperMix * db - paperMix * 0.004;
 
 			const o = pi * 4;
-			result.data[o] = linToSrgb(or);
-			result.data[o + 1] = linToSrgb(og);
-			result.data[o + 2] = linToSrgb(ob);
+			result.data[o] = Math.max(0, Math.min(255, Math.round(or * 255)));
+			result.data[o + 1] = Math.max(0, Math.min(255, Math.round(og * 255)));
+			result.data[o + 2] = Math.max(0, Math.min(255, Math.round(ob * 255)));
 			result.data[o + 3] = 255;
 		}
 	}
@@ -542,24 +551,25 @@ export function renderWatercolor(
 	const octx = out.getContext('2d')!;
 	octx.putImageData(result, 0, 0);
 
-	// 6 — Cold-press paper tooth as a final multiply, plus faint fibers, for the
-	//     tactile "painted on a sheet" cohesion.
+	// 6 — Cold-press paper tooth as a final, GENTLE multiply. Values sit near white
+	//     (242–255) so multiply only whispers a texture over the painting instead of
+	//     dropping grey static across the darks. Low alpha keeps it tactile, not dirty.
 	const grainCanvas = document.createElement('canvas');
 	grainCanvas.width = w;
 	grainCanvas.height = h;
 	const gctx = grainCanvas.getContext('2d')!;
 	const grainImg = gctx.createImageData(w, h);
 	for (let pi = 0; pi < w * h; pi++) {
-		const v = 228 + Math.round(((tooth[pi] * 0.6 + turb[pi] * 0.4) * 27));
+		const v = 242 + Math.round((tooth[pi] * 0.7 + turb[pi] * 0.3) * 13);
 		const o = pi * 4;
 		grainImg.data[o] = v;
 		grainImg.data[o + 1] = v;
-		grainImg.data[o + 2] = v - 5;
+		grainImg.data[o + 2] = v - 3;
 		grainImg.data[o + 3] = 255;
 	}
 	gctx.putImageData(grainImg, 0, 0);
 	octx.globalCompositeOperation = 'multiply';
-	octx.globalAlpha = Math.min(0.6, p.paper * 0.55);
+	octx.globalAlpha = Math.min(0.35, p.paper * 0.45);
 	octx.drawImage(grainCanvas, 0, 0);
 	octx.globalCompositeOperation = 'source-over';
 	octx.globalAlpha = 1;
