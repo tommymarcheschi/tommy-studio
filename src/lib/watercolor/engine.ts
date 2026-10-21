@@ -436,18 +436,41 @@ export function renderWatercolor(
 	// 1 — Edge-preserving abstraction → simplified shapes (the artist's "drawing").
 	const smoothed = edgePreservingSmooth(lin, w, h, p.smoothRadius, 0.12);
 
-	// 2 — Soft washes. Quantize for structure, then BLEND back toward the smoothed
-	//     image and blur the boundaries so washes bleed into each other instead of
-	//     snapping (this kills the posterized/cutout look).
-	const { out: washed, labels } = quantizeToWashes(smoothed, w, h, p.washLevels, rand);
+	// 2 — Soft washes. Quantize ONLY lightly, mostly to stabilize large flats, then
+	//     blend heavily back toward the smoothed image so we keep continuous tone
+	//     (no posterized bands) and blur boundaries so washes bleed, not snap.
+	const { out: washed } = quantizeToWashes(smoothed, w, h, p.washLevels, rand);
 	const softWash = new Float32Array(washed.length);
-	for (let i = 0; i < washed.length; i++) softWash[i] = washed[i] * 0.55 + smoothed[i] * 0.45;
+	for (let i = 0; i < washed.length; i++) softWash[i] = washed[i] * 0.3 + smoothed[i] * 0.7;
 	// Bleed radius scales with the "bleed" param — wet paper spreads pigment.
 	const bleedR = 1 + p.bleed * 1.6;
 	const bled = blurRGB(softWash, w, h, bleedR);
 
-	// 3 — Wet edges, softened into irregular blooms (not thin uniform lines).
-	const rawEdges = washEdges(labels, w, h);
+	// 3 — Wet edges from the IMAGE's real tonal gradient (eyes, nose, hairline),
+	//     NOT from quantize-region labels (which caused cutout outlines). Pigment
+	//     migrates to and pools at genuine edges as a wash dries. Luminance Sobel on
+	//     the smoothed image → soft bloom. This follows the face, not blocky regions.
+	const lum = new Float32Array(w * h);
+	for (let i = 0; i < w * h; i++)
+		lum[i] = 0.299 * smoothed[i * 3] + 0.587 * smoothed[i * 3 + 1] + 0.114 * smoothed[i * 3 + 2];
+	const rawEdges = new Float32Array(w * h);
+	for (let y = 1; y < h - 1; y++) {
+		for (let x = 1; x < w - 1; x++) {
+			const pi = y * w + x;
+			const gx =
+				lum[pi - w - 1] + 2 * lum[pi - 1] + lum[pi + w - 1] -
+				lum[pi - w + 1] - 2 * lum[pi + 1] - lum[pi + w + 1];
+			const gy =
+				lum[pi - w - 1] + 2 * lum[pi - w] + lum[pi - w + 1] -
+				lum[pi + w - 1] - 2 * lum[pi + w] - lum[pi + w + 1];
+			// Soft response: real edges pool pigment, gentle gradients barely register.
+			const mag = Math.sqrt(gx * gx + gy * gy);
+			rawEdges[pi] = Math.min(1, mag * 1.6);
+		}
+	}
+	// `localDetail` = how textured each region is, used to PROTECT smooth skin from
+	// granulation noise (skin is flat → low detail → suppress grain there).
+	const localDetail = blurScalar(rawEdges, w, h, 3);
 	const edgeBloom = blurScalar(rawEdges, w, h, 1 + p.bleed);
 
 	// 4 — Pigment fields. Turbulence = uneven water flow; fine tooth = paper grain;
@@ -491,51 +514,47 @@ export function renderWatercolor(
 			b = Math.min(1, Math.max(0, luma0 + (b - luma0) * p.saturation));
 
 			// Pigment "load" = how far from bare paper this wash sits (0 = paper, 1 = dark).
-			let load = 1 - luma0;
-
-			// 5 — paper breathes through FIRST: pull the light end toward bare paper so
-			//     highlights read as untouched luminous sheet, not grey. This lifts the
-			//     white point; the effect fades out as the wash gets darker.
-			const lift = p.whiteBleed;
-			const lightLift = lift * (1 - load) * (1 - load); // strong only in lights
-			r = r + (1 - r) * lightLift;
-			g = g + (1 - g) * lightLift;
-			b = b + (1 - b) * lightLift;
-			load = Math.max(0, load - lift * (1 - load) * (1 - load));
+			const load = 1 - luma0;
+			const detail = Math.min(1, localDetail[pi] * 2.2); // 0 = flat skin, 1 = texture
 
 			// 4a — turbulent wash density: water carries more/less pigment in irregular
-			//      fingers. Multiplies the pigment load, enveloped toward the mid/dark
-			//      washes (bare paper and solid darks stay put — variation there is mud).
+			//      fingers. Enveloped toward mid washes AND suppressed on flat skin so
+			//      faces stay smooth (variation lives in backgrounds & textured areas).
 			const washEnv = load * (1.1 - load);
-			const densMod = ((turb[pi] - 0.5) * 0.28 + (flow[pi] - 0.5) * 0.18) * washEnv;
+			const densAmt = 0.18 + 0.22 * detail;
+			const densMod = ((turb[pi] - 0.5) * densAmt + (flow[pi] - 0.5) * densAmt * 0.6) * washEnv;
 
-			// 4b — edge blooms: pigment pools and DARKENS at wet boundaries, irregularly.
-			const bloom = edgeBloom[pi] * p.edgeDarkening * (0.5 + turb[pi] * 0.7) * 0.5;
+			// 4b — edge blooms: pigment pools and DARKENS at real tonal edges. Soft and
+			//      multiplicative so it reads as wet pooling, not an inked outline.
+			const bloom = edgeBloom[pi] * p.edgeDarkening * (0.6 + turb[pi] * 0.4) * 0.35;
 
-			// 4c — granulation: grains settle into tooth, visible only in MID washes.
+			// 4c — granulation: grains settle into tooth, only in MID washes AND only
+			//      where there's already texture. detail-gating keeps it OFF faces.
 			const midEnv = 4 * load * (1 - load);
-			const granMod = (gran[pi] - 0.5) * p.granulation * 0.35 * midEnv;
+			const granMod = (gran[pi] - 0.5) * p.granulation * 0.28 * midEnv * detail;
 
-			// 4d — paper tooth: faint mottle where the wash is THIN (lights only).
-			const toothMod = (tooth[pi] - 0.5) * p.paper * 0.08 * (1 - load);
+			// 4d — paper tooth: faint mottle where the wash is THIN, texture areas only.
+			const toothMod = (tooth[pi] - 0.5) * p.paper * 0.06 * (1 - load) * (0.3 + 0.7 * detail);
 
-			// Combine wash-shaping into a single per-pixel darken/lighten of the load,
-			// then re-apply to the color as a multiplicative pigment layer over paper.
-			const shaped = Math.min(1, Math.max(0, load * (1 + densMod) + bloom + granMod + toothMod));
-			// Pigment multiplies the light passing through to paper: darker where shaped
-			// is high. Keep hue by scaling each channel toward its wash color.
+			// Combine wash-shaping into a single pigment factor. Density/granulation
+			// variation is damped on the lighten side (×0.5) so grain can't punch holes
+			// in light washes; pooling only darkens.
+			const shaped = Math.min(1.3, Math.max(0, load * (1 + densMod) + bloom + granMod * 0.5 + toothMod * 0.5));
+			// Pigment multiplies the light reaching paper: darker where shaped is high.
 			const k = load > 1e-4 ? shaped / load : 1;
 			let dr = 1 - Math.min(1, (1 - r) * k);
 			let dg = 1 - Math.min(1, (1 - g) * k);
 			let db = 1 - Math.min(1, (1 - b) * k);
 
-			// dr/dg/db are final sRGB colors. Tint the lightest areas toward warm cream
-			// paper (real watercolor paper isn't pure #fff) — only where near-white.
-			const lightness = (dr + dg + db) / 3;
-			const paperMix = Math.max(0, lightness - 0.8) / 0.2; // 0 below 0.8, 1 at white
-			const or = dr * (1 - paperMix) + 0.988 * paperMix * dr + paperMix * 0.004;
-			const og = dg * (1 - paperMix) + 0.980 * paperMix * dg + paperMix * 0.0;
-			const ob = db * (1 - paperMix) + 0.958 * paperMix * db - paperMix * 0.004;
+			// 5 — paper glow: gently lift ONLY the already-near-white wash toward warm
+			//     cream paper, smoothly (no hard threshold → no blobby holes). whiteBleed
+			//     controls how luminous the highlights read.
+			const lgt = (dr + dg + db) / 3;
+			const glow = p.whiteBleed * 0.3 * Math.max(0, (lgt - 0.55) / 0.45); // smooth ramp
+			dr = dr + (0.99 - dr) * glow;
+			dg = dg + (0.985 - dg) * glow;
+			db = db + (0.96 - db) * glow;
+			const or = dr, og = dg, ob = db;
 
 			const o = pi * 4;
 			result.data[o] = Math.max(0, Math.min(255, Math.round(or * 255)));
