@@ -36,6 +36,8 @@ export interface WatercolorParams {
 	saturation: number;
 	/** How much of the white paper shows through in highlights (0–1). */
 	whiteBleed: number;
+	/** Backrun / bloom ("cauliflower") strength — pale centers ringed by dark drying fronts (0–1). */
+	backrun: number;
 }
 
 export const PRESETS: Record<PhotoType, WatercolorParams> = {
@@ -49,7 +51,8 @@ export const PRESETS: Record<PhotoType, WatercolorParams> = {
 		paper: 0.55,
 		bleed: 2.5,
 		saturation: 1.1,
-		whiteBleed: 0.6
+		whiteBleed: 0.6,
+		backrun: 0.3
 	},
 	// Landscapes: looser, more atmospheric. Fewer washes, bigger bleed & granulation,
 	// stronger edge pooling for that classic en-plein-air feel.
@@ -61,7 +64,8 @@ export const PRESETS: Record<PhotoType, WatercolorParams> = {
 		paper: 0.65,
 		bleed: 4.5,
 		saturation: 1.25,
-		whiteBleed: 0.5
+		whiteBleed: 0.5,
+		backrun: 0.55
 	},
 	// Cartoons / illustrations: crisp shapes already, so keep washes graphic,
 	// light smoothing, strong edge ink, minimal bleed.
@@ -73,7 +77,8 @@ export const PRESETS: Record<PhotoType, WatercolorParams> = {
 		paper: 0.5,
 		bleed: 1.8,
 		saturation: 1.2,
-		whiteBleed: 0.6
+		whiteBleed: 0.6,
+		backrun: 0.15
 	}
 };
 
@@ -206,6 +211,59 @@ function turbulence(
 	}
 	for (let i = 0; i < out.length; i++) out[i] /= totalAmp;
 	return out;
+}
+
+/**
+ * Backrun / bloom field (the "cauliflower" — watercolor's most recognizable tell).
+ * When a wetter wash runs into a drying one, water pushes pigment outward, leaving
+ * a PALE center ringed by a DARKER, feathered drying front. We scatter a few large
+ * blooms and return a SIGNED density field: negative in the center (lighter),
+ * positive crest at the rim (darker), soft falloff beyond. Added in optical-density
+ * space downstream, gated to mid-wash regions so faces/highlights stay clean.
+ *
+ * Deliberately SPARSE and LARGE — blooms are occasional events, not texture; that
+ * is what keeps them reading as "hand-painted" rather than "noisy".
+ */
+function bloomField(
+	w: number,
+	h: number,
+	count: number,
+	rand: () => number
+): Float32Array {
+	const field = new Float32Array(w * h);
+	const minDim = Math.min(w, h);
+	for (let i = 0; i < count; i++) {
+		const cx = rand() * w;
+		const cy = rand() * h;
+		const R = minDim * (0.08 + rand() * 0.14); // large: 8–22% of the short side
+		const edgePhase = 0.68 + rand() * 0.12; // where the dark ring sits (fraction of R)
+		const irr = 0.6 + rand() * 0.8; // per-bloom crest intensity variation
+		const y0 = Math.max(0, Math.floor(cy - R * 1.2));
+		const y1 = Math.min(h - 1, Math.ceil(cy + R * 1.2));
+		const x0 = Math.max(0, Math.floor(cx - R * 1.2));
+		const x1 = Math.min(w - 1, Math.ceil(cx + R * 1.2));
+		// Slight anisotropy so blooms aren't perfect circles (water spreads unevenly).
+		const ax = 0.8 + rand() * 0.5;
+		const ay = 0.8 + rand() * 0.5;
+		for (let y = y0; y <= y1; y++) {
+			for (let x = x0; x <= x1; x++) {
+				const dx = (x - cx) / ax;
+				const dy = (y - cy) / ay;
+				const d = Math.sqrt(dx * dx + dy * dy) / R;
+				if (d > 1.18) continue;
+				let v: number;
+				if (d < edgePhase) {
+					v = -0.5 * (1 - d / edgePhase); // pale, water-pushed center
+				} else if (d < 1.0) {
+					v = irr * Math.sin(((d - edgePhase) / (1.0 - edgePhase)) * Math.PI); // dark drying crest
+				} else {
+					v = irr * 0.3 * Math.max(0, 1 - (d - 1.0) / 0.18); // soft outer feather
+				}
+				field[y * w + x] += v;
+			}
+		}
+	}
+	return field;
 }
 
 /** Separable box blur (fast Gaussian approx) over an RGB linear buffer, radius px. */
@@ -410,6 +468,14 @@ export function renderWatercolor(
 	const flow = turbulence(w, h, 40, 3, rand); // low-freq "where the water pooled"
 	const tooth = noiseField(w, h, 2.0, rand);
 	const gran = noiseField(w, h, 4.5, rand);
+	// Backruns/blooms: a few large, sparse "cauliflowers". Count scales with area
+	// and the backrun param; a light blur softens the rim so it reads as a wet
+	// drying front, not a drawn ring. Signed D-space field: pale center, dark rim.
+	const bloomCount = Math.round(((w * h) / 90000) * (1 + p.backrun * 4));
+	const blooms =
+		p.backrun > 0 && bloomCount > 0
+			? blurScalar(bloomField(w, h, bloomCount, rand), w, h, 2)
+			: new Float32Array(w * h);
 
 	// Hand-tremor WOBBLE: two LOW-frequency noise octaves offset the final sample
 	//   coords (Bousseau UV-offset). Low frequency is the whole secret - high-freq
@@ -488,12 +554,18 @@ export function renderWatercolor(
 			// 4d - paper tooth: faint density mottle across the painting.
 			const toothMod = (tooth[pi] - 0.5) * p.paper * 0.12 * (0.4 + 0.6 * detail);
 
+			// 4e - backrun/bloom: signed D-space field (pale center, dark rim). Gated to
+			//      mid-wash regions via washEnv so faces/highlights never cauliflower, and
+			//      scaled by backrun. This is the headline "hand-painted" tell.
+			const bloomMod =
+				blooms[pi] * p.backrun * 1.35 * (0.5 + washEnv * 1.1) * (0.25 + 0.75 * (1 - detail));
+
 			// Accumulate modulations as a SIGNED density offset (Beer-Lambert: density
 			// adds). densMod/toothMod are signed (lighten or darken); bloom/granMod only
 			// darken. A gentle exposure lift keeps the result luminous, not a dark photo.
 			const lift = 0.2 + 0.5 * loadN; // exposure lift: open shadows toward paper so
 			// the painting reads luminous (lifted) rather than a dark reproduction
-			const dD = densMod + bloom + granMod + toothMod - lift;
+			const dD = densMod + bloom + granMod + toothMod + bloomMod - lift;
 			Dr = Math.max(0, Dr + dD);
 			Dg = Math.max(0, Dg + dD);
 			Db = Math.max(0, Db + dD);

@@ -273,6 +273,7 @@
 					<label>Granulation <input type="range" min="0" max="1" step="0.05" bind:value={params.granulation} oninput={onTune} /></label>
 					<label>Paper texture <input type="range" min="0" max="1" step="0.05" bind:value={params.paper} oninput={onTune} /></label>
 					<label>Wet bleed <input type="range" min="0" max="6" step="0.5" bind:value={params.bleed} oninput={onTune} /></label>
+					<label>Blooms <input type="range" min="0" max="1" step="0.05" bind:value={params.backrun} oninput={onTune} /></label>
 					<label>Saturation <input type="range" min="0.5" max="1.6" step="0.05" bind:value={params.saturation} oninput={onTune} /></label>
 				</details>
 
