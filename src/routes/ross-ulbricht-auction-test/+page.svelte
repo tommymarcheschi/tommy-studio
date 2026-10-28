@@ -1,26 +1,33 @@
 <script lang="ts">
-	// ── Ross Ulbricht shoes — BMAG donation/purchase checkout (MOCK) ──────────────
-	// Half-donation / half-purchase format: a BPI donation UNLOCKS the shoe purchase.
-	// Slider sets the total offer (5–50 BTC). Split rule, confirmed with the seller:
-	//   • ≤ 10 BTC total → 50/50 (seller = total/2)
-	//   • 10 → 50 BTC    → seller rises LINEARLY 5 → 10; BPI takes the remainder
-	// Anchors: 5→2.5/2.5, 10→5/5, 30→22.5/7.5, 50→40/10. (No real transactions.)
+	// ── Ross Ulbricht shoes — BMAG buy-now via split PSBT (MOCK) ──────────────────
+	// Buy-now listing (not an auction). One Partially-Signed Bitcoin Transaction the
+	// buyer signs routes funds in a single payment:
+	//   • 50% → BPI directly (donation; BMAG never custodies it)
+	//   • 50% → BMAG, held in escrow as the seller-side funds until the seller
+	//     confirms the shoes have shipped.
+	// Settlement with the seller is a SECOND transaction, sent after shipping is
+	// confirmed: of the total, the seller receives ~35% and BMAG keeps a ~15% fee.
+	// Slider sets the total offer (5–50 BTC); ceiling nods to the 50-BTC block subsidy.
+	// (No real transactions — preview only.)
 
 	const MIN = 5;
 	const MAX = 50;
 	const STEP = 0.5;
 
+	const BMAG_FEE_PCT = 0.15; // of total proceeds (negotiable to 10%)
+
 	let total = $state(5);
 
-	function sellerFor(t: number): number {
-		if (t <= 10) return t / 2;
-		return 5 + (t - 10) * 0.125; // 5 at t=10, 10 at t=50
-	}
-
-	const seller = $derived(sellerFor(total));
-	const bpi = $derived(total - seller);
-	const sellerPct = $derived((seller / total) * 100);
+	// The buyer's PSBT always splits the TOTAL evenly: half to BPI, half to BMAG escrow.
+	const bpi = $derived(total * 0.5); // direct donation to BPI
+	const escrow = $derived(total * 0.5); // to BMAG, held until shipping confirmed
+	// Second (settlement) transaction, out of the escrowed half:
+	const bmagFee = $derived(total * BMAG_FEE_PCT); // ~15% of total
+	const seller = $derived(escrow - bmagFee); // ~35% of total to the seller
 	const bpiPct = $derived((bpi / total) * 100);
+	const escrowPct = $derived((escrow / total) * 100);
+	const sellerPct = $derived((seller / total) * 100);
+	const bmagPct = $derived((bmagFee / total) * 100);
 
 	// USD context (illustrative; BTC price is a display assumption, labeled as such).
 	const BTC_USD = 122_000;
@@ -30,17 +37,19 @@
 		(n * BTC_USD).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
 	// ── Payment flow state machine ────────────────────────────────────────────────
-	// idle → donateQr → donatePaid(unlocks) → buyQr → buyPaid(done)
-	type Phase = 'idle' | 'donateQr' | 'donatePaid' | 'buyQr' | 'complete';
+	// One buyer signature (the split PSBT), then a later seller-side settlement:
+	//   idle → signPsbt → broadcast(buyer done) → shipped → settled(complete)
+	type Phase = 'idle' | 'signPsbt' | 'broadcast' | 'shipped' | 'complete';
 	let phase = $state<Phase>('idle');
 
 	// Throwaway, clearly-fake BTC addresses for the QR mock (never real wallets).
 	const BPI_ADDR = 'bc1qbpi0donation0mock0address0do0not0send0funds0xy';
+	const BMAG_ADDR = 'bc1qbmag0escrow0mock0address0do0not0send0funds0ab';
 	const SELLER_ADDR = 'bc1qseller0mock0address0do0not0send0real0funds0zk';
 
 	// Mock transaction ids for the receipt (illustrative only — real flow fills these in).
-	const BPI_TXID = 'mock0000d0nati0n00000000000000000000000000000000000000000000f00d';
-	const SELLER_TXID = 'mock00000purch4se00000000000000000000000000000000000000000000beef';
+	const PSBT_TXID = 'mock0000spl1t0psbt00000000000000000000000000000000000000000000f00d';
+	const SETTLE_TXID = 'mock00000settlement00000000000000000000000000000000000000000000beef';
 
 	// A tiny on-the-fly QR-ish matrix purely for visual flavor (deterministic from seed).
 	function qrCells(seed: string): boolean[] {
@@ -54,19 +63,18 @@
 		}
 		return out;
 	}
-	const donateQr = qrCells(BPI_ADDR + total);
-	const buyQr = $derived(qrCells(SELLER_ADDR + total));
+	const psbtQr = $derived(qrCells(BPI_ADDR + BMAG_ADDR + total));
 
-	function startDonation() {
-		phase = 'donateQr';
+	function startCheckout() {
+		phase = 'signPsbt';
 	}
-	function completeDonation() {
-		phase = 'donatePaid';
+	function signAndBroadcast() {
+		phase = 'broadcast';
 	}
-	function startPurchase() {
-		phase = 'buyQr';
+	function confirmShipped() {
+		phase = 'shipped';
 	}
-	function completePurchase() {
+	function settleSeller() {
 		phase = 'complete';
 	}
 	function reset() {
@@ -112,9 +120,10 @@
 			</div>
 
 			<dl class="facts">
-				<div><dt>Provenance</dt><dd>Ross Nike Freedom Shoes acquired by Coin Think Tank at auction during Bitcoin 2025, Las Vegas</dd></div>
-				<div><dt>Donation</dt><dd>A donation to BPI unlocks the purchase price. Use the slider below to set your BPI donation. The Bitcoin Policy Institute (BPI) is a non-profit, 501(c)(3) and is eligible to receive your tax-deductible contributions directly.</dd></div>
-				<div><dt>Purchase price</dt><dd>After your BPI donation, the Ross Shoes purchase price is unlocked, allowing you to purchase the shoes. The seller, CoinThinkTank, will pay applicable federal and state taxes on the purchase price of the shoes.</dd></div>
+				<div><dt>Format</dt><dd>Buy-now listing (not an auction). ₿5 minimum; the slider tops out at ₿50, a nod to Bitcoin's original block subsidy.</dd></div>
+				<div><dt>Provenance</dt><dd>Ross Nike Freedom Shoes acquired by Coin Think Tank at auction during Bitcoin 2025, Las Vegas.</dd></div>
+				<div><dt>Donation</dt><dd>Exactly half of your offer goes directly to the Bitcoin Policy Institute (BPI) — a non-profit, 501(c)(3) eligible to receive your tax-deductible contributions directly. BMAG never takes custody of this donation.</dd></div>
+				<div><dt>Settlement</dt><dd>The other half settles the purchase: BMAG holds it in escrow until the seller, CoinThinkTank, confirms the shoes have shipped, then releases the seller's share. The seller will pay applicable federal and state taxes on the purchase price.</dd></div>
 			</dl>
 		</section>
 
@@ -123,7 +132,7 @@
 			{#if phase === 'idle'}
 				<!-- ── OFFER BUILDER (slider) ─────────────────────────────── -->
 				<div class="eyebrow">Build your offer</div>
-				<h2 class="offer-h">Set your total using the slider below. A donation to BPI unlocks the purchase of the shoes.</h2>
+				<h2 class="offer-h">Set your total with the slider. One Bitcoin transaction you sign sends half to BPI and half to settle the purchase.</h2>
 
 				<!-- Total headline -->
 				<div class="totalrow">
@@ -148,16 +157,17 @@
 					</div>
 				</div>
 
-				<!-- Split bar -->
+				<!-- Split bar: half to BPI, half to the seller side (seller + BMAG fee). -->
 				<div class="splitbar" aria-hidden="true">
 					<div class="seg seg-bpi" style="width:{bpiPct}%"></div>
 					<div class="seg seg-seller" style="width:{sellerPct}%"></div>
+					<div class="seg seg-bmag" style="width:{bmagPct}%"></div>
 				</div>
 
 				<!-- Breakdown -->
 				<div class="breakdown">
 					<div class="line">
-						<div class="lbl"><span class="dot dot-bpi"></span> Donation to BPI</div>
+						<div class="lbl"><span class="dot dot-bpi"></span> Donation to BPI <span class="tag">direct · PSBT</span></div>
 						<div class="val">
 							<span class="v-btc">₿{fmtBtc(bpi)}</span>
 							<span class="v-usd">{fmtUsd(bpi)}</span>
@@ -166,29 +176,39 @@
 					</div>
 					<div class="hair"></div>
 					<div class="line">
-						<div class="lbl"><span class="dot dot-seller"></span> Purchase · to seller</div>
+						<div class="lbl"><span class="dot dot-seller"></span> Seller allocation <span class="tag">on delivery</span></div>
 						<div class="val">
 							<span class="v-btc">₿{fmtBtc(seller)}</span>
 							<span class="v-usd">{fmtUsd(seller)}</span>
 							<span class="v-pct">{sellerPct.toFixed(0)}%</span>
 						</div>
 					</div>
+					<div class="hair"></div>
+					<div class="line">
+						<div class="lbl"><span class="dot dot-bmag"></span> BMAG fee <span class="tag">from seller side</span></div>
+						<div class="val">
+							<span class="v-btc">₿{fmtBtc(bmagFee)}</span>
+							<span class="v-usd">{fmtUsd(bmagFee)}</span>
+							<span class="v-pct">{bmagPct.toFixed(0)}%</span>
+						</div>
+					</div>
 				</div>
 
 				<!-- Why this matters callout (design-voice hallmark) -->
 				<div class="callout">
-					<div class="callout-h">How the split works</div>
+					<div class="callout-h">How payment works</div>
 					<p>
-						Up to ₿10, the donation and the purchase are even. Past ₿10, the seller's share rises
-						gradually to a ₿10 cap at ₿50 — so <strong>every coin you add above ₿10 weighs toward BPI</strong>.
-						Pull to ₿50 and you donate ₿40 to the Bitcoin Policy Institute.
+						You sign <strong>one Bitcoin transaction</strong> (a split PSBT). It routes
+						<strong>half directly to BPI</strong> — BMAG never touches the donation — and the other half to
+						BMAG, held in escrow. Once the seller confirms the shoes have shipped, BMAG releases the
+						seller's ₿{fmtBtc(seller)} and keeps a {(BMAG_FEE_PCT * 100).toFixed(0)}% fee.
 					</p>
 				</div>
 
-				<button class="btn btn-primary" onclick={startDonation}>
-					Donate now · ₿{fmtBtc(bpi)}
+				<button class="btn btn-primary" onclick={startCheckout}>
+					Review &amp; sign · ₿{fmtBtc(total)}
 				</button>
-				<p class="paynote">Step 1 sends your ₿{fmtBtc(bpi)} donation to BPI. That unlocks step 2.</p>
+				<p class="paynote">One signature splits ₿{fmtBtc(bpi)} to BPI and ₿{fmtBtc(escrow)} to escrow.</p>
 
 			{:else}
 				<!-- ── CHECKOUT (replaces the slider in place) ────────────── -->
@@ -196,83 +216,101 @@
 
 				<!-- Step indicator -->
 				<div class="steps">
-					<div class="step" class:on={phase === 'donateQr'} class:done={phase === 'donatePaid' || phase === 'buyQr' || phase === 'complete'}>
-						<span class="num">1</span> Donate to BPI
+					<div class="step" class:on={phase === 'signPsbt'} class:done={phase === 'broadcast' || phase === 'shipped' || phase === 'complete'}>
+						<span class="num">1</span> Sign the PSBT
 					</div>
 					<div class="steparrow">→</div>
-					<div class="step" class:locked={phase === 'donateQr'} class:on={phase === 'buyQr'} class:done={phase === 'complete'}>
-						<span class="num">2</span> Purchase the shoes
+					<div class="step" class:locked={phase === 'signPsbt'} class:on={phase === 'broadcast' || phase === 'shipped'} class:done={phase === 'complete'}>
+						<span class="num">2</span> Ship &amp; settle
 					</div>
 				</div>
 
-				{#if phase === 'donateQr'}
+				{#if phase === 'signPsbt'}
 					<div class="qrcard">
-						<div class="qrhead">Step 1 — Donate ₿{fmtBtc(bpi)} to BPI</div>
+						<div class="qrhead">Sign one transaction — ₿{fmtBtc(total)}</div>
 						<div class="qr">
-							{#each donateQr as on, i}<span class="cell" class:on={on} style="--i:{i}"></span>{/each}
+							{#each psbtQr as on, i}<span class="cell" class:on={on} style="--i:{i}"></span>{/each}
 						</div>
-						<div class="addr">{BPI_ADDR}</div>
-						<div class="await">Awaiting confirmation…</div>
-						<button class="btn btn-primary" onclick={completeDonation}>Complete payment (simulate)</button>
+						<!-- The single PSBT has two outputs; show both so the buyer sees exactly
+						     where every satoshi goes before they sign. -->
+						<div class="psbt-outs">
+							<div class="psbt-out">
+								<div class="po-top"><span class="dot dot-bpi"></span> ₿{fmtBtc(bpi)} → BPI <span class="po-tag">donation</span></div>
+								<div class="addr">{BPI_ADDR}</div>
+							</div>
+							<div class="psbt-out">
+								<div class="po-top"><span class="dot dot-seller"></span> ₿{fmtBtc(escrow)} → BMAG escrow <span class="po-tag">held until shipped</span></div>
+								<div class="addr">{BMAG_ADDR}</div>
+							</div>
+						</div>
+						<div class="await">Awaiting your signature…</div>
+						<button class="btn btn-primary" onclick={signAndBroadcast}>Sign &amp; broadcast (simulate)</button>
 						<button class="btn btn-ghost" onclick={reset}>← Back to offer</button>
 					</div>
 
-				{:else if phase === 'donatePaid'}
+				{:else if phase === 'broadcast'}
 					<div class="paid">
 						<div class="check">✓</div>
-						<div class="paid-h">Donation confirmed — ₿{fmtBtc(bpi)} to BPI</div>
-						<div class="paid-sub">The shoe purchase is now unlocked.</div>
-						<button class="btn btn-primary" onclick={startPurchase}>Continue to purchase · ₿{fmtBtc(seller)}</button>
+						<div class="paid-h">Payment broadcast — ₿{fmtBtc(total)}</div>
+						<div class="paid-sub">
+							₿{fmtBtc(bpi)} is on its way to BPI. ₿{fmtBtc(escrow)} is held in BMAG escrow
+							until the seller confirms the shoes have shipped.
+						</div>
+						<button class="btn btn-primary" onclick={confirmShipped}>Seller confirms shipped (simulate)</button>
 					</div>
 
-				{:else if phase === 'buyQr'}
-					<div class="qrcard">
-						<div class="qrhead">Step 2 — Purchase for ₿{fmtBtc(seller)}</div>
-						<div class="qr">
-							{#each buyQr as on, i}<span class="cell" class:on={on} style="--i:{i}"></span>{/each}
+				{:else if phase === 'shipped'}
+					<div class="paid">
+						<div class="check">✓</div>
+						<div class="paid-h">Shipping confirmed</div>
+						<div class="paid-sub">
+							BMAG now releases the seller's ₿{fmtBtc(seller)} and retains its
+							{(BMAG_FEE_PCT * 100).toFixed(0)}% fee (₿{fmtBtc(bmagFee)}) — a second settlement transaction.
 						</div>
-						<div class="addr">{SELLER_ADDR}</div>
-						<div class="await">Awaiting confirmation…</div>
-						<button class="btn btn-primary" onclick={completePurchase}>Complete payment (simulate)</button>
+						<button class="btn btn-primary" onclick={settleSeller}>Release settlement (simulate)</button>
 					</div>
 
 				{:else if phase === 'complete'}
-					<!-- Final receipt. Bold-bordered cards separate the DONATION from the
-					     PURCHASE so this page reads as a receipt for everyone involved
-					     (buyer, seller, BPI). Each card carries its own TXID + address. -->
+					<!-- Final receipt. Bold-bordered cards separate the three parties so this
+					     page reads as a receipt for everyone (buyer, seller, BPI, BMAG).
+					     The donation + escrow are one TXID (the split PSBT); the seller
+					     settlement is the second TXID. -->
 					<div class="done">
 						<div class="check big">✓</div>
-						<div class="done-h">Offer complete</div>
+						<div class="done-h">Sale complete</div>
 
-						<!-- Donation receipt card -->
+						<!-- Donation receipt card (output of the split PSBT) -->
 						<div class="receipt">
 							<div class="receipt-top">
-								<span class="dl">Total donated to BPI</span>
+								<span class="dl">Donated to BPI</span>
 								<span class="dv">₿{fmtBtc(bpi)}</span>
 							</div>
 							<dl class="receipt-meta">
-								<div><dt>Transaction ID</dt><dd>{BPI_TXID}</dd></div>
+								<div><dt>Transaction ID</dt><dd>{PSBT_TXID}</dd></div>
 								<div><dt>BTC address</dt><dd>{BPI_ADDR}</dd></div>
 							</dl>
 							<p class="receipt-fine">
-								The Bitcoin Policy Institute (BPI) is a non-profit, 501(c)(3) and is eligible
-								to receive your tax-deductible contributions directly.
+								Paid directly by the buyer's split PSBT. The Bitcoin Policy Institute (BPI) is a
+								non-profit, 501(c)(3) and is eligible to receive your tax-deductible contributions
+								directly; BMAG never takes custody of this donation.
 							</p>
 						</div>
 
-						<!-- Purchase receipt card -->
+						<!-- Seller settlement receipt card (second transaction) -->
 						<div class="receipt">
 							<div class="receipt-top">
-								<span class="dl">Total Ross Shoes purchase price</span>
+								<span class="dl">Settled to seller</span>
 								<span class="dv">₿{fmtBtc(seller)}</span>
 							</div>
 							<dl class="receipt-meta">
-								<div><dt>Transaction ID</dt><dd>{SELLER_TXID}</dd></div>
+								<div><dt>Transaction ID</dt><dd>{SETTLE_TXID}</dd></div>
 								<div><dt>BTC address</dt><dd>{SELLER_ADDR}</dd></div>
+								<div><dt>BMAG fee</dt><dd>₿{fmtBtc(bmagFee)} ({(BMAG_FEE_PCT * 100).toFixed(0)}%)</dd></div>
 							</dl>
 							<p class="receipt-fine">
-								The seller, CoinThinkTank, will pay applicable federal and state taxes on
-								the purchase price of the shoes.
+								Released from BMAG escrow after the seller confirmed shipment. The seller,
+								CoinThinkTank, will pay applicable federal and state taxes on the purchase price
+								of the shoes.
 							</p>
 						</div>
 
@@ -291,12 +329,18 @@
 
 	<div class="legal">
 		<p>
-			The Bitcoin Policy Institute (BPI) is a non-profit, 501(c)(3) and is eligible to receive your
-			tax-deductible contributions directly.
+			Payment is made as a single Partially-Signed Bitcoin Transaction (PSBT) signed by the buyer:
+			50% is routed directly to BPI and 50% to BMAG, held in escrow. The donation relationship is
+			directly between the buyer and BPI.
 		</p>
 		<p>
-			The seller, CoinThinkTank, will pay applicable federal and state taxes on the purchase price
-			of the shoes.
+			The Bitcoin Policy Institute (BPI) is a non-profit, 501(c)(3) and is eligible to receive your
+			tax-deductible contributions directly. BMAG does not take custody of the BPI donation.
+		</p>
+		<p>
+			BMAG releases the seller-side funds from escrow as a second transaction once the seller
+			confirms shipment, retaining its fee. The seller, CoinThinkTank, will pay applicable federal
+			and state taxes on the purchase price of the shoes.
 		</p>
 	</div>
 </div>
@@ -415,6 +459,7 @@
 	.splitbar { display: flex; height: 10px; border-radius: 2px; overflow: hidden; margin: 6px 0 22px; }
 	.seg-bpi { background: var(--accent); }
 	.seg-seller { background: var(--ink); }
+	.seg-bmag { background: #b9b9bf; }
 	.seg { transition: width 0.15s ease; }
 
 	.breakdown { margin-bottom: 22px; }
@@ -423,6 +468,8 @@
 	.dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
 	.dot-bpi { background: var(--accent); }
 	.dot-seller { background: var(--ink); }
+	.dot-bmag { background: #b9b9bf; }
+	.tag { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 2px; padding: 2px 5px; margin-left: 2px; }
 	.hair { height: 1px; background: var(--line); }
 	.val { display: flex; align-items: baseline; gap: 12px; }
 	.v-btc { font-family: var(--serif); font-size: 18px; font-weight: 600; }
@@ -458,6 +505,13 @@
 	.cell.on { background: var(--ink); }
 	.addr { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 10.5px; color: var(--muted); word-break: break-all; margin-bottom: 14px; }
 	.await { font-size: 12px; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 18px; }
+
+	/* The two outputs of the single split PSBT, shown before the buyer signs. */
+	.psbt-outs { display: grid; gap: 10px; margin-bottom: 16px; text-align: left; }
+	.psbt-out { border: 1px solid var(--line); border-radius: 3px; padding: 10px 12px; }
+	.po-top { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+	.psbt-out .addr { margin-bottom: 0; }
+	.po-tag { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 2px; padding: 2px 5px; font-weight: 500; }
 
 	.check { color: var(--accent); font-size: 34px; line-height: 1; margin-bottom: 10px; }
 	.check.big { font-size: 48px; }
