@@ -40,7 +40,13 @@
 	// One buyer signature (the split PSBT), then a later seller-side settlement:
 	//   idle → signPsbt → broadcast(buyer done) → shipped → settled(complete)
 	type Phase = 'idle' | 'signPsbt' | 'broadcast' | 'shipped' | 'complete';
-	let phase = $state<Phase>('idle');
+	// Dev-only: ?phase=signPsbt lets us preview a checkout step directly. No effect in prod.
+	const initialPhase: Phase = (() => {
+		if (!import.meta.env.DEV || typeof window === 'undefined') return 'idle';
+		const p = new URLSearchParams(window.location.search).get('phase');
+		return (['signPsbt', 'broadcast', 'shipped', 'complete'].includes(p ?? '') ? p : 'idle') as Phase;
+	})();
+	let phase = $state<Phase>(initialPhase);
 
 	// Throwaway, clearly-fake BTC addresses for the QR mock (never real wallets).
 	const BPI_ADDR = 'bc1qbpi0donation0mock0address0do0not0send0funds0xy';
