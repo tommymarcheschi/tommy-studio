@@ -14,6 +14,7 @@
 		cat: Cat;
 		tag?: string;
 		blurb?: string;
+		img?: string;
 	}
 
 	const HERO = {
@@ -25,35 +26,39 @@
 	};
 
 	const collectors: Product[] = [
-		{ title: 'Bitcoin Magazine Issue 1', price: '$2,100', cat: 'Issues', tag: 'May 2012 · Historic', blurb: 'The first issue ever printed. A genuine artifact of Bitcoin history.' },
-		{ title: '10th Anniversary Edition', price: '$249.99', cat: 'Issues', tag: 'Collector’s Edition' },
-		{ title: 'The El Salvador Issue #24', price: '$79.99', cat: 'Issues', tag: 'Historic' },
-		{ title: 'The Magician (2025) Print', price: '$256', cat: 'Prints', tag: '#/256 · Limited' },
-		{ title: 'FAKEGENESIS (2022) Print', price: '$256', cat: 'Prints', tag: '#/256 · Limited' },
-		{ title: 'Bitcoin War Bonds (2022) Print', price: '$256', cat: 'Prints', tag: '#/256 · Limited' }
+		{ title: 'Bitcoin Magazine Issue #1 · CGC 9.8', price: '$4,999', cat: 'Collectibles', img: '/bmag/products/p9.webp', tag: 'CGC 9.8 · Graded' },
+		{ title: 'Bitcoin Magazine Issue 1', price: '$2,100', cat: 'Issues', img: '/bmag/products/p46.webp', tag: '2012 · Historic', blurb: 'The first issue ever printed. A genuine artifact of Bitcoin history.' },
+		{ title: '10th Anniversary Edition', price: '$249.99', cat: 'Issues', img: '/bmag/products/p8.webp', tag: 'Collector’s Edition' },
+		{ title: 'The Genesis Book · #1 Collector’s Package', price: '$5,000', cat: 'Books', img: '/bmag/products/p0.webp', tag: '#1 · Collector' },
+		{ title: 'Bitcoin War Bonds (2022) Print', price: '$256', cat: 'Prints', img: '/bmag/products/p22.webp', tag: '#/256 · Limited' },
+		{ title: 'The Magician (2025) Print', price: '$256', cat: 'Prints', img: '/bmag/products/p31.webp', tag: '#/256 · Limited' }
 	];
 
 	const catalog: Product[] = [
-		{ title: 'Annual Subscription', price: '$79.00', cat: 'Issues', tag: 'Print + digital' },
-		{ title: 'Collector’s Edition Subscription', price: '$155.00', cat: 'Issues', tag: 'Read + sealed copy' },
-		{ title: 'The Quantum Issue #42', price: 'From $21.00', cat: 'Issues', tag: 'Current' },
-		{ title: 'The Core Issue #40', price: 'From $29.00', cat: 'Issues' },
-		{ title: 'The 2036 Issue #41', price: 'From $29.00', cat: 'Issues' },
-		{ title: 'The Censorship Resistant Issue #26', price: '$79.99', cat: 'Issues', tag: 'Historic' },
-		{ title: 'The Genesis Book', price: 'From $6.99', cat: 'Books' },
-		{ title: 'The Genesis Book — 3rd Anniversary Package', price: '$221.00', cat: 'Books', tag: 'Only 333' },
-		{ title: 'The Satoshi Papers', price: 'From $6.99', cat: 'Books' },
-		{ title: 'Bitcoin Is Venice', price: 'From $6.99', cat: 'Books' },
-		{ title: 'Cryptosovereignty', price: 'From $6.99', cat: 'Books' },
-		{ title: 'The Philosophy of Bitcoin', price: '$17.99', cat: 'Books' },
-		{ title: 'Fiat Ruins Everything', price: 'From $6.99', cat: 'Books' },
-		{ title: 'The Bitcoin-Dollar', price: 'From $6.99', cat: 'Books' },
-		{ title: 'Blockstream Jade Plus', price: 'From $149.00', cat: 'Hardware', tag: 'Hardware wallet' },
-		{ title: 'Blockstream Jade', price: '$67.00', cat: 'Hardware', tag: 'Hardware wallet' },
-		{ title: 'Fiat Land by Marcus Connor', price: '$121.00', cat: 'Prints', tag: 'Art print' },
-		{ title: 'Bicycle® Bitcoin Playing Cards', price: '$40.00', cat: 'Collectibles' },
-		{ title: 'Sticker Pack', price: '$21.00', cat: 'Collectibles' },
-		{ title: 'WORLD·LOVE·BITCOIN·PEACE Print', price: '$256', cat: 'Prints', tag: '#/69 · Limited' }
+		{ title: 'The Quantum Issue, #42', price: 'From $21', cat: 'Issues', img: '/bmag/products/p10.webp', tag: 'Current' },
+		{ title: 'The 2036 Issue, #41', price: 'From $29', cat: 'Issues', img: '/bmag/products/p13.webp' },
+		{ title: 'The Core Issue, #40', price: 'From $29', cat: 'Issues', img: '/bmag/products/p16.webp' },
+		{ title: 'The El Salvador Issue, #24', price: '$79.99', cat: 'Issues', img: '/bmag/products/p7.webp', tag: 'Historic' },
+		{ title: 'The Censorship Resistant Issue, #26', price: '$79.99', cat: 'Issues', img: '/bmag/products/p5.webp', tag: 'Historic' },
+		{ title: 'To The Moon Issue, #25', price: '$79.99', cat: 'Issues', img: '/bmag/products/p6.webp', tag: 'Historic' },
+		{ title: 'Annual Subscription', price: '$79', cat: 'Issues', img: '/bmag/products/p45.webp', tag: 'Print + digital' },
+		{ title: 'Collector’s Edition Subscription', price: '$155', cat: 'Issues', img: '/bmag/products/p42.webp', tag: 'Sealed copy' },
+		{ title: 'The Genesis Book', price: '$16.99', cat: 'Books', img: '/bmag/products/p35.webp' },
+		{ title: 'The Satoshi Papers', price: '$199.95', cat: 'Books', img: '/bmag/products/p32.webp' },
+		{ title: 'Bitcoin Is Venice', price: '$17.99', cat: 'Books', img: '/bmag/products/p44.webp' },
+		{ title: 'The Bitcoin Tao', price: '$145', cat: 'Books', img: '/bmag/products/p15.webp' },
+		{ title: 'The Philosophy of Bitcoin', price: '$17.99', cat: 'Books', img: '/bmag/products/p40.webp' },
+		{ title: 'Fiat Ruins Everything', price: '$17.99', cat: 'Books', img: '/bmag/products/p38.webp' },
+		{ title: 'A Progressive’s Case For Bitcoin', price: '$14.99', cat: 'Books', img: '/bmag/products/p23.webp' },
+		{ title: 'The Bitcoin-Dollar', price: '$15.99', cat: 'Books', img: '/bmag/products/p37.webp' },
+		{ title: 'FAKEGENESIS (2022) Print', price: '$256', cat: 'Prints', img: '/bmag/products/p24.webp', tag: '#/256 · Limited' },
+		{ title: 'WORLD•LOVE•BITCOIN•PEACE Print', price: '$256', cat: 'Prints', img: '/bmag/products/p29.webp', tag: '#/69 · Limited' },
+		{ title: 'Magic Lantern Show (2024) Print', price: '$256', cat: 'Prints', img: '/bmag/products/p30.webp', tag: '#/256 · Limited' },
+		{ title: 'Fiat Land by Marcus Connor', price: '$121', cat: 'Prints', img: '/bmag/products/p19.webp', tag: 'Art print' },
+		{ title: 'Blockstream Jade Plus', price: '$169', cat: 'Hardware', img: '/bmag/products/p18.webp', tag: 'Hardware wallet' },
+		{ title: 'Blockstream Jade', price: '$67', cat: 'Hardware', img: '/bmag/products/p20.webp', tag: 'Hardware wallet' },
+		{ title: 'Bitcoin 2025 Limited Edition Watch', price: '$1,299', cat: 'Collectibles', img: '/bmag/products/p25.webp', tag: 'Limited' },
+		{ title: 'Bicycle® Bitcoin Playing Cards', price: '$40', cat: 'Collectibles', img: '/bmag/products/p21.webp' }
 	];
 
 	const cats: (Cat | 'All')[] = ['All', 'Issues', 'Books', 'Prints', 'Hardware', 'Collectibles'];
@@ -136,7 +141,11 @@
 			{#each collectors as p}
 				<article class="vcard">
 					<div class="vimg">
-						<span class="vmono">{p.title.includes('Issue 1') ? '№1' : p.title.includes('Print') ? '◈' : '◆'}</span>
+						{#if p.img}
+							<img class="vpic" src={p.img} alt={p.title} loading="lazy" />
+						{:else}
+							<span class="vmono">{p.title.includes('Issue 1') ? '№1' : p.title.includes('Print') ? '◈' : '◆'}</span>
+						{/if}
 						{#if p.tag}<span class="vtag">{p.tag}</span>{/if}
 					</div>
 					<div class="vbody">
@@ -166,9 +175,13 @@
 			{#each shown as p}
 				<article class="card">
 					<div class="cimg">
-						<span class="cmono"
-							>{p.cat === 'Issues' ? '📰' : p.cat === 'Books' ? '▦' : p.cat === 'Prints' ? '◈' : p.cat === 'Hardware' ? '▣' : '✦'}</span
-						>
+						{#if p.img}
+							<img class="cpic" src={p.img} alt={p.title} loading="lazy" />
+						{:else}
+							<span class="cmono"
+								>{p.cat === 'Issues' ? '📰' : p.cat === 'Books' ? '▦' : p.cat === 'Prints' ? '◈' : p.cat === 'Hardware' ? '▣' : '✦'}</span
+							>
+						{/if}
 						{#if p.tag}<span class="ctag">{p.tag}</span>{/if}
 					</div>
 					<div class="cbody">
@@ -466,13 +479,22 @@
 		border-color: var(--orange);
 	}
 	.vimg {
-		height: 180px;
+		height: 230px;
 		background:
 			radial-gradient(120% 120% at 50% 0%, rgba(247, 147, 26, 0.16), transparent 60%),
 			linear-gradient(160deg, #1b1b1f, #0c0c0e);
 		display: grid;
 		place-items: center;
 		position: relative;
+		overflow: hidden;
+	}
+	.vpic {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		padding: 18px;
+		box-sizing: border-box;
+		filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.5));
 	}
 	.vmono {
 		font-family: 'EB Garamond', serif;
@@ -585,12 +607,25 @@
 		border-color: var(--orange);
 	}
 	.cimg {
-		height: 140px;
+		height: 200px;
 		background: linear-gradient(160deg, #191919, #0c0c0e);
 		display: grid;
 		place-items: center;
 		position: relative;
 		font-size: 34px;
+		overflow: hidden;
+	}
+	.cpic {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		padding: 16px;
+		box-sizing: border-box;
+		filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.45));
+		transition: transform 0.3s ease;
+	}
+	.card:hover .cpic {
+		transform: scale(1.04);
 	}
 	.ctag {
 		position: absolute;
