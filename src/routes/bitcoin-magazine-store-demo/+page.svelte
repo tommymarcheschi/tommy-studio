@@ -479,22 +479,38 @@
 		border-color: var(--orange);
 	}
 	.vimg {
-		height: 230px;
+		height: 260px;
 		background:
-			radial-gradient(120% 120% at 50% 0%, rgba(247, 147, 26, 0.16), transparent 60%),
-			linear-gradient(160deg, #1b1b1f, #0c0c0e);
+			radial-gradient(120% 120% at 50% -5%, rgba(247, 147, 26, 0.18), transparent 58%),
+			linear-gradient(160deg, #1b1b1f, #0a0a0c);
 		display: grid;
 		place-items: center;
 		position: relative;
 		overflow: hidden;
+		padding: 26px 26px 28px;
+	}
+	.vimg::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, transparent 20%, transparent 70%, rgba(0, 0, 0, 0.55) 100%);
 	}
 	.vpic {
-		width: 100%;
-		height: 100%;
+		max-width: 100%;
+		max-height: 100%;
+		width: auto;
+		height: auto;
 		object-fit: contain;
-		padding: 18px;
-		box-sizing: border-box;
-		filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.5));
+		border-radius: 4px;
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.16) inset,
+			0 22px 38px -14px rgba(0, 0, 0, 0.8),
+			0 3px 8px rgba(0, 0, 0, 0.55);
+		transition: transform 0.25s ease;
+	}
+	.vcard:hover .vpic {
+		transform: translateY(-3px);
 	}
 	.vmono {
 		font-family: 'EB Garamond', serif;
@@ -607,25 +623,40 @@
 		border-color: var(--orange);
 	}
 	.cimg {
-		height: 200px;
-		background: linear-gradient(160deg, #191919, #0c0c0e);
+		height: 230px;
+		background:
+			radial-gradient(130% 100% at 50% -10%, rgba(247, 147, 26, 0.1), transparent 55%),
+			linear-gradient(165deg, #17171a 0%, #0a0a0c 100%);
 		display: grid;
 		place-items: center;
 		position: relative;
 		font-size: 34px;
 		overflow: hidden;
+		padding: 22px 22px 24px;
+	}
+	/* seat the cover: dark floor + top edge so cards don't read as a bright wall */
+	.cimg::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0%, transparent 22%, transparent 72%, rgba(0, 0, 0, 0.5) 100%);
 	}
 	.cpic {
-		width: 100%;
-		height: 100%;
+		max-width: 100%;
+		max-height: 100%;
+		width: auto;
+		height: auto;
 		object-fit: contain;
-		padding: 16px;
-		box-sizing: border-box;
-		filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.45));
+		border-radius: 3px;
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.14) inset,
+			0 18px 30px -12px rgba(0, 0, 0, 0.75),
+			0 2px 6px rgba(0, 0, 0, 0.5);
 		transition: transform 0.3s ease;
 	}
 	.card:hover .cpic {
-		transform: scale(1.04);
+		transform: translateY(-3px) scale(1.03);
 	}
 	.ctag {
 		position: absolute;
