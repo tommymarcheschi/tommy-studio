@@ -71,7 +71,7 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<div class="bm">
+<div class="bm" id="top">
 	<!-- demo ribbon -->
 	<div class="ribbon">
 		CONCEPT DEMO · bitcoinmagazine.com store on the shared BMAG backend · not live checkout
@@ -79,13 +79,10 @@
 
 	<!-- nav -->
 	<header class="nav">
-		<div class="brand">
-			<span class="logo">₿</span>
-			<div>
-				<div class="bname">BITCOIN MAGAZINE</div>
-				<div class="btag">STORE</div>
-			</div>
-		</div>
+		<a class="brand" href="#top">
+			<img class="logo-img" src="/bmag/bitcoin-magazine-logo.png" alt="Bitcoin Magazine" />
+			<span class="btag">STORE</span>
+		</a>
 		<nav class="links">
 			<a href="#issues">Issues</a>
 			<a href="#books">Books</a>
@@ -195,7 +192,7 @@
 	</section>
 
 	<footer class="foot">
-		<div>BITCOIN MAGAZINE — STORE</div>
+		<img class="foot-logo" src="/bmag/bitcoin-magazine-logo.png" alt="Bitcoin Magazine" />
 		<div class="fmono">Concept redesign · runs on the shared BMAG commerce backend · demo only</div>
 	</footer>
 </div>
@@ -248,28 +245,21 @@
 		display: flex;
 		align-items: center;
 		gap: 12px;
+		text-decoration: none;
 	}
-	.logo {
-		width: 38px;
-		height: 38px;
-		border-radius: 8px;
-		background: var(--orange);
-		color: #1a1206;
-		display: grid;
-		place-items: center;
-		font-weight: 800;
-		font-size: 22px;
-	}
-	.bname {
-		font-weight: 800;
-		letter-spacing: 0.14em;
-		font-size: 15px;
+	.logo-img {
+		height: 26px;
+		width: auto;
+		display: block;
 	}
 	.btag {
 		font-size: 10px;
 		letter-spacing: 0.4em;
 		color: var(--orange);
 		font-weight: 700;
+		padding-left: 12px;
+		border-left: 1px solid rgba(255, 255, 255, 0.18);
+		line-height: 1;
 	}
 	.links {
 		display: flex;
@@ -680,10 +670,11 @@
 		flex-wrap: wrap;
 		gap: 12px;
 	}
-	.foot > div:first-child {
-		font-weight: 800;
-		letter-spacing: 0.14em;
-		font-size: 14px;
+	.foot-logo {
+		height: 22px;
+		width: auto;
+		display: block;
+		opacity: 0.9;
 	}
 	.fmono {
 		font-size: 12px;
