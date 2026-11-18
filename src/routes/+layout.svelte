@@ -14,6 +14,7 @@
 	// skip the portfolio nav/footer/transitions for these.
 	let bare = $derived(
 		$page.url.pathname.startsWith('/ross-ulbricht-auction-test') ||
+		$page.url.pathname.startsWith('/bitcoin-magazine-store-demo') ||
 		$page.url.pathname.startsWith('/watercolor')
 	);
 	let mobileMenuOpen = $state(false);
