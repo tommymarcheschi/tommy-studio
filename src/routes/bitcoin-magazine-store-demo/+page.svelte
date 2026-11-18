@@ -194,6 +194,11 @@
 			</div>
 		{/each}
 
+		<!-- big brand lockup over the takeover, fades out on scroll -->
+		<div class="herologo" class:hide={scrolled}>
+			<img src="/bmag/bitcoin-magazine-logo.png" alt="Bitcoin Magazine" />
+		</div>
+
 		<div class="hero-inner">
 			{#key slide}
 				<div class="hero-copy">
@@ -386,6 +391,15 @@
 		gap: 12px;
 		text-decoration: none;
 		flex-shrink: 0;
+		opacity: 0;
+		transform: translateY(-4px);
+		pointer-events: none;
+		transition: opacity 0.3s ease, transform 0.3s ease;
+	}
+	.nav.solid .brand {
+		opacity: 1;
+		transform: none;
+		pointer-events: auto;
 	}
 	.logo-img {
 		height: 26px;
@@ -510,6 +524,27 @@
 		overflow: hidden;
 		display: flex;
 		align-items: flex-end;
+	}
+	/* big brand lockup centered over the takeover */
+	.herologo {
+		position: absolute;
+		top: 118px;
+		left: 0;
+		right: 0;
+		z-index: 3;
+		display: flex;
+		justify-content: center;
+		pointer-events: none;
+		transition: opacity 0.35s ease, transform 0.35s ease;
+	}
+	.herologo img {
+		width: min(600px, 70vw);
+		height: auto;
+		filter: drop-shadow(0 8px 40px rgba(0, 0, 0, 0.65));
+	}
+	.herologo.hide {
+		opacity: 0;
+		transform: translateY(-14px);
 	}
 	.slide {
 		position: absolute;
