@@ -173,6 +173,26 @@
 		clearTimeout(pulseTimer);
 		pulseTimer = setTimeout(() => (bagPulse = false), 450);
 	}
+
+	// ── quick-view: click a product to open a detail panel (feels shoppable) ──
+	let quick = $state<Product | null>(null);
+	function openQuick(p: Product) {
+		quick = p;
+	}
+	function closeQuick() {
+		quick = null;
+	}
+	function quickAdd() {
+		add();
+		closeQuick();
+	}
+	$effect(() => {
+		if (typeof document === 'undefined') return;
+		document.body.style.overflow = quick ? 'hidden' : '';
+		return () => {
+			document.body.style.overflow = '';
+		};
+	});
 </script>
 
 <svelte:head>
@@ -180,7 +200,7 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<svelte:window on:scroll={onScroll} />
+<svelte:window on:scroll={onScroll} on:keydown={(e) => e.key === 'Escape' && closeQuick()} />
 
 <div class="bm" id="top" class:scrolled>
 	<!-- demo ribbon -->
@@ -316,7 +336,14 @@
 		</div>
 		<div class="vgrid">
 			{#each collectors as p}
-				<article class="vcard">
+				<!-- svelte-ignore a11y_no_noninteractive_element_to_interactive_role -->
+				<article
+					class="vcard"
+					role="button"
+					tabindex="0"
+					onclick={() => openQuick(p)}
+					onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), openQuick(p))}
+				>
 					<div class="vimg">
 						{#if p.img}
 							<img class="vpic" src={p.img} alt={p.title} loading="lazy" />
@@ -324,13 +351,14 @@
 							<span class="vmono">{p.title.includes('Issue 1') ? '№1' : p.title.includes('Print') ? '◈' : '◆'}</span>
 						{/if}
 						{#if p.tag}<span class="vtag">{p.tag}</span>{/if}
+						<span class="qhint">Quick view</span>
 					</div>
 					<div class="vbody">
 						<h3>{p.title}</h3>
 						{#if p.blurb}<p>{p.blurb}</p>{/if}
 						<div class="vrow">
 							<span class="vprice">{p.price}</span>
-							<button class="mini" onclick={add}>Add</button>
+							<button class="mini" onclick={(e) => { e.stopPropagation(); add(); }}>Add</button>
 						</div>
 					</div>
 				</article>
@@ -362,7 +390,14 @@
 		{/if}
 		<div class="grid">
 			{#each shown as p}
-				<article class="card">
+				<!-- svelte-ignore a11y_no_noninteractive_element_to_interactive_role -->
+				<article
+					class="card"
+					role="button"
+					tabindex="0"
+					onclick={() => openQuick(p)}
+					onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), openQuick(p))}
+				>
 					<div class="cimg">
 						{#if p.img}
 							<img class="cpic" src={p.img} alt={p.title} loading="lazy" />
@@ -372,13 +407,14 @@
 							>
 						{/if}
 						{#if p.tag}<span class="ctag">{p.tag}</span>{/if}
+						<span class="qhint">Quick view</span>
 					</div>
 					<div class="cbody">
 						<div class="ccat">{p.cat}</div>
 						<h3>{p.title}</h3>
 						<div class="crow">
 							<span class="cprice">{p.price}</span>
-							<button class="mini" onclick={add}>Add</button>
+							<button class="mini" onclick={(e) => { e.stopPropagation(); add(); }}>Add</button>
 						</div>
 					</div>
 				</article>
@@ -397,6 +433,46 @@
 		<img class="foot-logo" src="/bmag/bitcoin-magazine-logo.png" alt="Bitcoin Magazine" />
 		<div class="fmono">Concept redesign · runs on the shared BMAG commerce backend · demo only</div>
 	</footer>
+
+	<!-- ── quick-view modal ──────────────────────────────────────────────── -->
+	{#if quick}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div class="qv-scrim" onclick={closeQuick}>
+			<div
+				class="qv"
+				role="dialog"
+				tabindex="-1"
+				aria-modal="true"
+				aria-label={quick.title}
+				onclick={(e) => e.stopPropagation()}
+			>
+				<button class="qv-close" aria-label="Close" onclick={closeQuick}>✕</button>
+				<div class="qv-img">
+					{#if quick.img}
+						<img src={quick.img} alt={quick.title} />
+					{:else}
+						<span class="qv-mono">◆</span>
+					{/if}
+					{#if quick.tag}<span class="qv-tag">{quick.tag}</span>{/if}
+				</div>
+				<div class="qv-body">
+					<div class="qv-cat">{quick.cat}</div>
+					<h3>{quick.title}</h3>
+					<p class="qv-blurb">
+						{quick.blurb ??
+							'An original piece from the Bitcoin Magazine store, fulfilled worldwide. Pay in Bitcoin over Lightning or on-chain, or with a card at checkout.'}
+					</p>
+					<div class="qv-price">{quick.price}</div>
+					<div class="qv-pay">
+						<span>⚡ Lightning</span><span>₿ On-chain</span><span>◆ Card</span>
+					</div>
+					<button class="qv-add" onclick={quickAdd}>Add to bag</button>
+					<div class="qv-note">Free tracked shipping over $100 · Ships in 2–3 business days</div>
+				</div>
+			</div>
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -1002,11 +1078,17 @@
 		border: 1px solid var(--line);
 		border-radius: 12px;
 		overflow: hidden;
+		cursor: pointer;
 		transition: transform 0.18s ease, border-color 0.18s ease;
 	}
 	.vcard:hover {
 		transform: translateY(-4px);
 		border-color: var(--orange);
+	}
+	.vcard:focus-visible,
+	.card:focus-visible {
+		outline: 2px solid var(--orange);
+		outline-offset: 2px;
 	}
 	.vimg {
 		height: 260px;
@@ -1184,6 +1266,7 @@
 		border: 1px solid var(--line);
 		border-radius: 12px;
 		overflow: hidden;
+		cursor: pointer;
 		transition: transform 0.18s ease, border-color 0.18s ease;
 	}
 	.card:hover {
@@ -1315,6 +1398,213 @@
 		color: var(--muted);
 	}
 
+	/* quick-view hint chip, fades in on card hover */
+	.qhint {
+		position: absolute;
+		bottom: 10px;
+		right: 10px;
+		z-index: 2;
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #1a1206;
+		background: var(--orange);
+		padding: 4px 9px;
+		border-radius: 999px;
+		opacity: 0;
+		transform: translateY(4px);
+		transition: opacity 0.18s ease, transform 0.18s ease;
+		pointer-events: none;
+	}
+	.card:hover .qhint,
+	.vcard:hover .qhint,
+	.card:focus-visible .qhint,
+	.vcard:focus-visible .qhint {
+		opacity: 1;
+		transform: none;
+	}
+
+	/* ── quick-view modal ──────────────────────────────────────────────── */
+	.qv-scrim {
+		position: fixed;
+		inset: 0;
+		z-index: 80;
+		background: rgba(6, 6, 8, 0.78);
+		backdrop-filter: blur(6px);
+		display: grid;
+		place-items: center;
+		padding: 24px;
+		animation: qvFade 0.2s ease both;
+	}
+	@keyframes qvFade {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+	.qv {
+		position: relative;
+		width: min(840px, 100%);
+		max-height: 88vh;
+		overflow: hidden;
+		display: grid;
+		grid-template-columns: 1.05fr 1fr;
+		background: var(--ink2);
+		border: 1px solid var(--line);
+		border-radius: 16px;
+		box-shadow: 0 40px 100px -30px rgba(0, 0, 0, 0.9);
+		animation: qvRise 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	}
+	@keyframes qvRise {
+		from {
+			opacity: 0;
+			transform: translateY(18px) scale(0.98);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+	.qv-close {
+		position: absolute;
+		top: 12px;
+		right: 12px;
+		z-index: 3;
+		width: 34px;
+		height: 34px;
+		border-radius: 999px;
+		border: 1px solid var(--line);
+		background: rgba(0, 0, 0, 0.45);
+		color: var(--paper);
+		font-size: 14px;
+		cursor: pointer;
+		transition: background 0.18s ease, border-color 0.18s ease;
+	}
+	.qv-close:hover {
+		background: var(--orange);
+		color: #1a1206;
+		border-color: var(--orange);
+	}
+	.qv-img {
+		position: relative;
+		display: grid;
+		place-items: center;
+		padding: 40px;
+		background:
+			radial-gradient(120% 110% at 50% -5%, rgba(247, 147, 26, 0.16), transparent 60%),
+			linear-gradient(160deg, #1b1b1f, #0a0a0c);
+		overflow: hidden;
+	}
+	.qv-img::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, transparent 22%, transparent 70%, rgba(0, 0, 0, 0.5) 100%);
+	}
+	.qv-img img {
+		max-width: 100%;
+		max-height: 58vh;
+		width: auto;
+		height: auto;
+		object-fit: contain;
+		border-radius: 5px;
+		box-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.16) inset,
+			0 30px 60px -20px rgba(0, 0, 0, 0.85),
+			0 4px 12px rgba(0, 0, 0, 0.55);
+	}
+	.qv-mono {
+		font-family: 'EB Garamond', serif;
+		font-size: 72px;
+		color: var(--orange);
+		opacity: 0.85;
+	}
+	.qv-tag {
+		position: absolute;
+		top: 16px;
+		left: 16px;
+		background: var(--orange);
+		color: #1a1206;
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.06em;
+		padding: 4px 10px;
+		border-radius: 999px;
+		text-transform: uppercase;
+		z-index: 2;
+	}
+	.qv-body {
+		padding: 38px 36px;
+		display: flex;
+		flex-direction: column;
+		overflow-y: auto;
+	}
+	.qv-cat {
+		font-size: 11px;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--orange);
+		font-weight: 800;
+		margin-bottom: 10px;
+	}
+	.qv-body h3 {
+		font-family: 'EB Garamond', serif;
+		font-size: 30px;
+		line-height: 1.1;
+		font-weight: 600;
+		margin: 0 0 16px;
+	}
+	.qv-blurb {
+		color: #cfc8ba;
+		font-size: 14px;
+		line-height: 1.6;
+		margin: 0 0 22px;
+	}
+	.qv-price {
+		font-size: 26px;
+		font-weight: 800;
+		margin-bottom: 16px;
+	}
+	.qv-pay {
+		display: flex;
+		gap: 14px;
+		flex-wrap: wrap;
+		font-size: 12px;
+		font-weight: 700;
+		color: #d7d0c2;
+		margin-bottom: 24px;
+	}
+	.qv-pay span {
+		border: 1px solid var(--line);
+		border-radius: 999px;
+		padding: 6px 12px;
+	}
+	.qv-add {
+		background: var(--orange);
+		color: #1a1206;
+		border: none;
+		border-radius: 999px;
+		padding: 15px 28px;
+		font-weight: 800;
+		font-size: 15px;
+		cursor: pointer;
+		box-shadow: 0 16px 40px -14px rgba(247, 147, 26, 0.7);
+		transition: background 0.2s ease, transform 0.15s ease;
+	}
+	.qv-add:hover {
+		background: var(--orange2);
+		transform: translateY(-2px);
+	}
+	.qv-note {
+		margin-top: 16px;
+		font-size: 12px;
+		color: var(--muted);
+	}
+
 	@media (max-width: 900px) {
 		.nav {
 			padding: 12px 16px;
@@ -1380,6 +1670,23 @@
 		.vault,
 		.shop {
 			padding: 44px 18px;
+		}
+		.qv {
+			grid-template-columns: 1fr;
+			max-height: 90vh;
+			overflow-y: auto;
+		}
+		.qv-img {
+			padding: 30px 30px 20px;
+		}
+		.qv-img img {
+			max-height: 38vh;
+		}
+		.qv-body {
+			padding: 26px 24px 32px;
+		}
+		.qv-body h3 {
+			font-size: 24px;
 		}
 	}
 </style>
