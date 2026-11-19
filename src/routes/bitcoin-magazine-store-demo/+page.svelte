@@ -237,9 +237,20 @@
 			</div>
 		{/each}
 
-		<!-- big brand lockup over the takeover, fades out on scroll -->
-		<div class="herologo" class:hide={scrolled}>
-			<img src="/bmag/bitcoin-magazine-logo.png" alt="Bitcoin Magazine" />
+		<!-- LANDING MASTHEAD: powerful centered logo + visible nav links, sitting over
+		     the hero. Fades/lifts away on scroll as the compact solid bar takes over. -->
+		<div class="masthead" class:hide={scrolled}>
+			<a class="mlogo" href="#top">
+				<img src="/bmag/bitcoin-magazine-logo.png" alt="Bitcoin Magazine" />
+				<span class="mtag">STORE</span>
+			</a>
+			<nav class="mlinks" aria-label="Store sections">
+				<a href="#issues" onclick={(e) => shopCat('Issues', e)}>Issues</a>
+				<a href="#issues" onclick={(e) => shopCat('Books', e)}>Books</a>
+				<a href="#issues" onclick={(e) => shopCat('Prints', e)}>Prints &amp; Art</a>
+				<a href="#issues" onclick={(e) => shopCat('Hardware', e)}>Hardware</a>
+				<a href="#collect">The Vault</a>
+			</nav>
 		</div>
 
 		<div class="hero-inner">
@@ -529,6 +540,15 @@
 		font-size: 13px;
 		font-weight: 600;
 		flex-shrink: 0;
+		opacity: 0;
+		transform: translateY(-4px);
+		pointer-events: none;
+		transition: opacity 0.3s ease, transform 0.3s ease;
+	}
+	.nav.solid .links {
+		opacity: 1;
+		transform: none;
+		pointer-events: auto;
 	}
 	.links a {
 		color: var(--paper);
@@ -545,6 +565,15 @@
 		align-items: center;
 		gap: 16px;
 		flex-shrink: 0;
+		opacity: 0;
+		transform: translateY(-4px);
+		pointer-events: none;
+		transition: opacity 0.3s ease, transform 0.3s ease;
+	}
+	.nav.solid .navright {
+		opacity: 1;
+		transform: none;
+		pointer-events: auto;
 	}
 	.pay {
 		font-size: 11px;
@@ -596,26 +625,83 @@
 		display: flex;
 		align-items: flex-end;
 	}
-	/* big brand lockup centered over the takeover */
-	.herologo {
+	/* ── LANDING MASTHEAD: big centered logo + visible nav links over the hero.
+	     This is the landing identity; it lifts/fades on scroll and the compact
+	     solid .nav bar takes over — one continuous transition. ─────────────── */
+	.masthead {
 		position: absolute;
-		top: 118px;
+		top: 104px;
 		left: 0;
 		right: 0;
 		z-index: 3;
 		display: flex;
-		justify-content: center;
-		pointer-events: none;
-		transition: opacity 0.35s ease, transform 0.35s ease;
+		flex-direction: column;
+		align-items: center;
+		gap: 22px;
+		padding: 0 24px;
+		transition: opacity 0.4s ease, transform 0.4s ease;
 	}
-	.herologo img {
-		width: min(600px, 70vw);
+	.mlogo {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+		text-decoration: none;
+	}
+	.mlogo img {
+		width: min(560px, 74vw);
 		height: auto;
 		filter: drop-shadow(0 8px 40px rgba(0, 0, 0, 0.65));
 	}
-	.herologo.hide {
+	.mtag {
+		font-size: 13px;
+		letter-spacing: 0.62em;
+		color: var(--orange);
+		font-weight: 800;
+		text-indent: 0.62em;
+		text-shadow: 0 1px 14px rgba(0, 0, 0, 0.6);
+	}
+	.mlinks {
+		display: flex;
+		gap: 34px;
+		font-size: 14px;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+	.mlinks a {
+		position: relative;
+		color: var(--paper);
+		text-decoration: none;
+		opacity: 0.92;
+		padding-bottom: 6px;
+		text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+		transition: color 0.2s ease, opacity 0.2s ease;
+	}
+	.mlinks a::after {
+		content: '';
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		height: 2px;
+		background: var(--orange);
+		transform: scaleX(0);
+		transform-origin: center;
+		transition: transform 0.22s ease;
+	}
+	.mlinks a:hover {
+		color: var(--orange2);
+		opacity: 1;
+	}
+	.mlinks a:hover::after {
+		transform: scaleX(1);
+	}
+	/* on scroll: lift the whole masthead up and fade — hands off to the solid bar */
+	.masthead.hide {
 		opacity: 0;
-		transform: translateY(-14px);
+		transform: translateY(-28px);
+		pointer-events: none;
 	}
 	.slide {
 		position: absolute;
@@ -1242,6 +1328,21 @@
 		}
 		.links {
 			display: none;
+		}
+		.masthead {
+			top: 86px;
+			gap: 18px;
+		}
+		.mtag {
+			font-size: 11px;
+			letter-spacing: 0.5em;
+			text-indent: 0.5em;
+		}
+		.mlinks {
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 14px 20px;
+			font-size: 12px;
 		}
 		.hero {
 			min-height: 560px;
