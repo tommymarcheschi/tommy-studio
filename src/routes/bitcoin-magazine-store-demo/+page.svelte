@@ -78,12 +78,21 @@
 		return () => clearInterval(id);
 	});
 
-	// floating feature widgets pinned over the hero (cross-promote)
-	const features = [
-		{ label: 'Collector’s pick', title: 'Issue #1 · CGC 9.8', price: '$4,999', img: '/bmag/products/p9.webp', href: '#collect' },
-		{ label: 'Bestseller', title: 'The Satoshi Papers', price: '$199.95', img: '/bmag/products/p32.webp', href: '#books' },
-		{ label: 'Limited print', title: 'The Magician (2025)', price: '$256', img: '/bmag/products/p31.webp', href: '#prints' }
+	// floating feature widgets pinned over the hero (cross-promote). `to` is the
+	// category the widget pins when clicked; 'Vault' scrolls to the collector grid.
+	const features: { label: string; title: string; price: string; img: string; to: Cat | 'All' | 'Vault' }[] = [
+		{ label: 'Collector’s pick', title: 'Issue #1 · CGC 9.8', price: '$4,999', img: '/bmag/products/p9.webp', to: 'Vault' },
+		{ label: 'Bestseller', title: 'The Satoshi Papers', price: '$199.95', img: '/bmag/products/p32.webp', to: 'Books' },
+		{ label: 'Limited print', title: 'The Magician (2025)', price: '$256', img: '/bmag/products/p31.webp', to: 'Prints' }
 	];
+	function featureClick(to: Cat | 'All' | 'Vault', e: Event) {
+		e.preventDefault();
+		if (to === 'Vault') {
+			document.getElementById('collect')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		} else {
+			shopCat(to);
+		}
+	}
 
 	// scrolled-past-hero → solid Amazon-style navbar
 	let scrolled = $state(false);
@@ -130,11 +139,39 @@
 
 	const cats: (Cat | 'All')[] = ['All', 'Issues', 'Books', 'Prints', 'Hardware', 'Collectibles'];
 	let active = $state<Cat | 'All'>('All');
-	const shown = $derived(active === 'All' ? catalog : catalog.filter((p) => p.cat === active));
+
+	// live search + category filter. The vault's collector pieces are part of the
+	// searchable store too, so a query sweeps both grids via one matcher.
+	const matches = (p: Product, q: string) => {
+		if (!q) return true;
+		const hay = `${p.title} ${p.cat} ${p.tag ?? ''} ${p.blurb ?? ''}`.toLowerCase();
+		return q
+			.toLowerCase()
+			.split(/\s+/)
+			.filter(Boolean)
+			.every((t) => hay.includes(t));
+	};
+	const shown = $derived(
+		catalog.filter((p) => (active === 'All' || p.cat === active) && matches(p, query))
+	);
+	const searching = $derived(query.trim().length > 0);
+
+	// jump to the shop and pin a category (used by nav links + feature widgets)
+	function shopCat(c: Cat | 'All', e?: Event) {
+		e?.preventDefault();
+		active = c;
+		query = '';
+		document.getElementById('issues')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	}
 
 	let bag = $state(0);
+	let bagPulse = $state(false);
+	let pulseTimer: ReturnType<typeof setTimeout>;
 	function add() {
 		bag += 1;
+		bagPulse = true;
+		clearTimeout(pulseTimer);
+		pulseTimer = setTimeout(() => (bagPulse = false), 450);
 	}
 </script>
 
@@ -159,19 +196,25 @@
 		</a>
 		<div class="search">
 			<span class="sicon">⌕</span>
-			<input placeholder="Search issues, books, prints, hardware…" bind:value={query} />
-			<button class="sgo" onclick={() => (active = 'All')}>Search</button>
+			<input
+				placeholder="Search issues, books, prints, hardware…"
+				bind:value={query}
+				onkeydown={(e) => {
+					if (e.key === 'Enter') shopCat('All');
+				}}
+			/>
+			<button class="sgo" onclick={() => shopCat('All')}>Search</button>
 		</div>
 		<nav class="links">
-			<a href="#issues">Issues</a>
-			<a href="#books">Books</a>
-			<a href="#prints">Prints &amp; Art</a>
-			<a href="#hardware">Hardware</a>
+			<a href="#issues" onclick={(e) => shopCat('Issues', e)}>Issues</a>
+			<a href="#issues" onclick={(e) => shopCat('Books', e)}>Books</a>
+			<a href="#issues" onclick={(e) => shopCat('Prints', e)}>Prints &amp; Art</a>
+			<a href="#issues" onclick={(e) => shopCat('Hardware', e)}>Hardware</a>
 			<a href="#collect">Vault</a>
 		</nav>
 		<div class="navright">
 			<span class="pay">₿ · ⚡ · Card</span>
-			<button class="bag" onclick={add}>Bag · {bag}</button>
+			<button class="bag" class:pulse={bagPulse} onclick={add}>Bag · {bag}</button>
 		</div>
 	</header>
 
@@ -218,7 +261,7 @@
 			<!-- floating feature widgets over the takeover -->
 			<aside class="features" aria-label="Also featured">
 				{#each features as f}
-					<a class="fwidget" href={f.href}>
+					<a class="fwidget" href="#issues" onclick={(e) => featureClick(f.to, e)}>
 						<span class="fimg" style="background-image:url({f.img})"></span>
 						<span class="ftext">
 							<span class="flabel">{f.label}</span>
@@ -294,6 +337,18 @@
 				{/each}
 			</div>
 		</div>
+		{#if searching}
+			<div class="srow">
+				<span>{shown.length} result{shown.length === 1 ? '' : 's'} for “{query}”</span>
+				<button class="clearq" onclick={() => (query = '')}>Clear search</button>
+			</div>
+		{/if}
+		{#if shown.length === 0}
+			<div class="empty">
+				<p>No matches for “{query}”.</p>
+				<button class="mini" onclick={() => { query = ''; active = 'All'; }}>Show everything</button>
+			</div>
+		{/if}
 		<div class="grid">
 			{#each shown as p}
 				<article class="card">
@@ -513,6 +568,22 @@
 	.bag:hover {
 		background: var(--orange);
 		color: #1a1206;
+	}
+	.bag.pulse {
+		animation: bagpop 0.45s ease;
+	}
+	@keyframes bagpop {
+		0% {
+			transform: scale(1);
+		}
+		40% {
+			transform: scale(1.18);
+			background: var(--orange);
+			color: #1a1206;
+		}
+		100% {
+			transform: scale(1);
+		}
 	}
 
 	/* ── fullscreen rotating hero takeover ─────────────────────────────── */
@@ -978,6 +1049,44 @@
 		background: var(--orange);
 		color: #1a1206;
 		border-color: var(--orange);
+	}
+	.srow {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		margin: -8px 0 22px;
+		font-size: 13px;
+		color: #cfc8ba;
+		font-weight: 600;
+	}
+	.clearq {
+		background: transparent;
+		border: 1px solid var(--line);
+		color: var(--orange2);
+		border-radius: 999px;
+		padding: 6px 14px;
+		font-weight: 700;
+		font-size: 12px;
+		cursor: pointer;
+	}
+	.clearq:hover {
+		border-color: var(--orange);
+	}
+	.empty {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 16px;
+		padding: 60px 20px 72px;
+		text-align: center;
+		color: var(--muted);
+		border: 1px dashed var(--line);
+		border-radius: 14px;
+	}
+	.empty p {
+		margin: 0;
+		font-size: 16px;
 	}
 	.grid {
 		display: grid;
