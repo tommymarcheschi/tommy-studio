@@ -1,40 +1,44 @@
 <script lang="ts">
 	// ── B27 — "Bitcoin 2019-style" conference website TEMPLATE (demo) ─────────────
-	// A standalone one-pager on tommy.studio that recreates the feel of the classic
-	// Bitcoin 2019 conference site, built to DEMONSTRATE the signature mechanic:
+	// A standalone one-pager on tommy.studio that recreates the feel of the CLASSIC
+	// Bitcoin 2019 Webflow template (bitcoin-2019-conference.webflow.io) and
+	// demonstrates its signature mechanics.
 	//
-	//   A  Fullscreen video-bg hero. Centered "B27" logo, nav items float as text
-	//      links, social + location info in the corners. (The fold.)
-	//   B  ON SCROLL → the nav row (A2) detaches and becomes a STICKY SOLID NAVBAR
-	//      pinned to the top (A3 social links ride inside it). The centered content
-	//      stays contained so the background video shows on the sides — home sections
-	//      feel like they float ON TOP of the bg video.
-	//   C  Speakers / sponsors / the "point-you-somewhere" sections — deliberately
-	//      NOT a generic expected grid.
-	//   D  Final ticket CTA + "BTC Inc" footer.
+	// The real B19 DNA, studied from the live template:
+	//   • Bright Bitcoin-ORANGE body with floating translucent bubbles — playful,
+	//     not a dark tech grid.
+	//   • A contained WHITE content column centered over the orange, so the orange
+	//     shows on the sides — content "floats" on the background (exactly the
+	//     sketch's note).
+	//   • A sticky WHITE navbar (₿ bitcoin logo · nav · green Register · burger).
+	//   • Titillium Web display type; a "YEAR" numeral mark with a ₿ coin nested in.
+	//   • A periwinkle top announcement bar for "next year".
+	//   • "By the Numbers" stat row, orange pull-quotes, a "₿ bitcoin accepted" badge.
 	//
-	// Everything swappable for real content is an isolated const up top. The bg is a
-	// self-contained animated canvas (zero external deps); drop a real loop into
-	// BG_VIDEO to have a <video> take over — one line.
+	// The signature MECHANIC to demo (from the sketch + the real site):
+	//   A2 nav floats in the hero → on scroll it detaches into the sticky navbar.
+	//
+	// WIREFRAME toggle: ON strips everything to the structural blueprint (the
+	// sketch) with labelled dashed blocks; OFF is the styled B19-style page.
+	// All swappable content is isolated consts up top.
 	import { onMount } from 'svelte';
 
 	// ── Content — populated from the real B27 site (conference.b.tc) ──────────────
-	// Copy sourced from the live Bitcoin 2027 conference page; stat/tier values are
-	// representative stand-ins where the real figures load dynamically off-page.
-	const BRAND = 'B27';
+	const BRAND_PRE = 'bitcoin'; // logo: "₿ bitcoin27"
+	const BRAND_YR = '27';
 	const EVENT_NAME = 'BITCOIN 2027';
 	const TAGLINE = 'Sound Money. Center Stage.';
-	const DATE = 'JULY 15–17, 2027';
-	const CITY = 'NASHVILLE, TN';
+	const HERO_LINE = 'A Peer-to-Peer Conference';
+	const DATE = 'July 15–17, 2027';
+	const CITY = 'Nashville, TN';
 	const VENUE = 'Music City Center';
 	const VENUE_ADDR = '201 Rep. John Lewis Way S, Nashville, TN 37203';
-	// Drop a real looping mp4 path here (e.g. '/b27/hero-loop.mp4') and the <video>
-	// takes over the animated-canvas background automatically.
-	const BG_VIDEO = '';
+	// Next-year announcement (the periwinkle top bar on the real site)
+	const NEXT = { label: 'Bitcoin 2028 registration is live!', brand: 'bitcoin28', href: '#tickets' };
 
 	const NAV = [
 		{ label: 'The Story', href: '#history' },
-		{ label: 'By the Numbers', href: '#numbers' },
+		{ label: 'Numbers', href: '#numbers' },
 		{ label: 'Sponsors', href: '#sponsors' },
 		{ label: 'Nashville', href: '#nashville' },
 		{ label: 'Get Involved', href: '#tickets' }
@@ -46,35 +50,33 @@
 		{ label: 'YT', href: 'https://youtube.com/@BitcoinMagazine' }
 	];
 
-	// "The Story" — the real B27 narrative, as a history/key-moments timeline
+	const INTRO =
+		'From a white paper, some code and a simple message — “Chancellor on brink of second bailout for banks” — an idea was born so powerful it ignited a revolution.';
 	const STORY =
-		'What started as a reunion for a fragmented ecosystem has become the world’s largest Bitcoin event platform — where builders, institutions, policymakers, and global decision-makers come together every year to shape what’s next.';
+		'Seven years on, the annual reunion of a fragmented ecosystem has become the world’s largest Bitcoin event — where builders, institutions, policymakers, and global decision-makers come together every year to shape what’s next.';
 	const MOMENTS = [
-		{ yr: '2019', note: 'The signal begins. A reunion for a fragmented ecosystem — the show that’s set the industry’s agenda ever since.' },
+		{ yr: '2019', note: 'The signal begins. The return of Bitcoin’s annual conference — the show that’s set the industry’s agenda ever since.' },
 		{ yr: '2024', note: 'B24: the Reserve Bill is unveiled in Nashville, and the first sitting president addresses the community.' },
 		{ yr: '2026', note: 'B26: 200+ companies bring the hall to life, from Moon sponsors to Block supporters.' },
 		{ yr: '2027', note: 'Sound Money. Center Stage. “The room where the rest of the decade gets written.”' }
 	];
 
-	// Pull-quote from the live site
 	const QUOTE = {
 		text: 'The room where the rest of the decade gets written.',
 		who: 'David Bailey',
 		role: 'CEO & Chairman, Nakamoto Inc.'
 	};
 
-	// "By the Numbers" — representative stand-ins (real figures load dynamically)
+	// "By the Numbers" — in the shape the real B19 site shows them
 	const NUMBERS = [
-		{ val: '35,000+', label: 'Total Avg. Attendees' },
+		{ val: '35,000+', label: 'Attendees' },
 		{ val: '500+', label: 'Speakers' },
+		{ val: '200+', label: 'Partners & Sponsors' },
 		{ val: '120+', label: 'Countries' }
 	];
 
-	// Real B26 sponsor-tier language (Moon → Block)
-	const SPONSOR_TIERS = ['MOON', 'WHALE', 'GENESIS', 'BLOCK'];
-	const SPONSORS = ['200+ COMPANIES', 'MOON SPONSORS', 'WHALE SPONSORS', 'GENESIS SPONSORS', 'BLOCK SUPPORTERS', 'B27 BOOTHS GOING FAST'];
+	const SPONSORS = ['MOON', 'WHALE', 'GENESIS', 'BLOCK', '200+ COMPANIES', 'EXHIBIT HALL SOLD OUT'];
 
-	// Nashville venue facts from the live site
 	const VENUE_FACTS = [
 		{ k: 'Floor Space', v: '1.2M sq ft' },
 		{ k: 'Exhibit Hall', v: '353,000 sq ft' },
@@ -82,22 +84,20 @@
 		{ k: 'Capacity', v: '35,000+' }
 	];
 
-	// Get Involved — ticket/booth tiers (D / B2)
 	const TIERS = [
 		{ name: 'GENERAL', price: '0.004', usd: '$499', perks: ['All stages & keynotes', '3-day Exhibit Hall', 'Industry mixers'] },
 		{ name: 'WHALE PASS', price: '0.018', usd: '$2,250', perks: ['Front-section seating', 'Speaker green room access', 'Collector lounge + merch', 'Priority re-entry'], feature: true },
 		{ name: 'SPONSOR / BOOTH', price: '—', usd: 'Contact', perks: ['Moon → Block tiers', 'Exhibit Hall booths', 'Custom activations'] }
 	];
 
-	// ── Scroll state: A2 nav detaches into a sticky solid navbar (the mechanic) ───
+	// ── Scroll state: A2 float-nav detaches into the sticky navbar (the mechanic) ─
 	let scrolled = $state(false);
 	let mobileOpen = $state(false);
 	function onScroll() {
-		scrolled = (typeof window !== 'undefined' ? window.scrollY : 0) > 120;
+		scrolled = (typeof window !== 'undefined' ? window.scrollY : 0) > 140;
 	}
 
-	// ── Wireframe mode: ON strips to the structural skeleton (the sketch); OFF is
-	//    the real styled page. Persisted so a toggle survives reloads. ────────────
+	// ── Wireframe mode: ON = structural skeleton (the sketch); OFF = styled page ──
 	let wireframe = $state(false);
 	$effect(() => {
 		if (typeof document === 'undefined') return;
@@ -107,84 +107,11 @@
 		} catch {}
 	});
 
-	// ── Self-contained animated background (stands in for the bg video) ──────────
-	let canvas: HTMLCanvasElement;
 	onMount(() => {
 		onScroll();
 		try {
 			wireframe = localStorage.getItem('b27-wireframe') === '1';
 		} catch {}
-		if (BG_VIDEO) return; // real video takes over; skip canvas work
-		const ctx = canvas.getContext('2d');
-		if (!ctx) return;
-		const c = ctx; // non-null alias for closures below
-		let raf = 0;
-		let w = 0,
-			h = 0;
-		const DPR = Math.min(window.devicePixelRatio || 1, 2);
-		// Drifting "network" of nodes — Bitcoin-orange over near-black. Subtle, slow.
-		const N = 70;
-		const pts = Array.from({ length: N }, () => ({
-			x: Math.random(),
-			y: Math.random(),
-			vx: (Math.random() - 0.5) * 0.00018,
-			vy: (Math.random() - 0.5) * 0.00018
-		}));
-		function resize() {
-			w = canvas.clientWidth;
-			h = canvas.clientHeight;
-			canvas.width = w * DPR;
-			canvas.height = h * DPR;
-			c.setTransform(DPR, 0, 0, DPR, 0, 0);
-		}
-		resize();
-		window.addEventListener('resize', resize);
-		function frame() {
-			c.clearRect(0, 0, w, h);
-			// vignette-ish radial wash
-			const g = c.createRadialGradient(w * 0.5, h * 0.42, 0, w * 0.5, h * 0.42, Math.max(w, h) * 0.75);
-			g.addColorStop(0, 'rgba(32,20,8,0.9)');
-			g.addColorStop(1, 'rgba(6,6,8,1)');
-			c.fillStyle = g;
-			c.fillRect(0, 0, w, h);
-			for (const p of pts) {
-				p.x += p.vx;
-				p.y += p.vy;
-				if (p.x < 0 || p.x > 1) p.vx *= -1;
-				if (p.y < 0 || p.y > 1) p.vy *= -1;
-			}
-			// links
-			for (let i = 0; i < N; i++) {
-				for (let j = i + 1; j < N; j++) {
-					const a = pts[i],
-						b = pts[j];
-					const dx = (a.x - b.x) * w,
-						dy = (a.y - b.y) * h;
-					const d = Math.hypot(dx, dy);
-					if (d < 150) {
-						c.strokeStyle = `rgba(247,147,26,${0.12 * (1 - d / 150)})`;
-						c.lineWidth = 1;
-						c.beginPath();
-						c.moveTo(a.x * w, a.y * h);
-						c.lineTo(b.x * w, b.y * h);
-						c.stroke();
-					}
-				}
-			}
-			// nodes
-			for (const p of pts) {
-				c.fillStyle = 'rgba(247,147,26,0.55)';
-				c.beginPath();
-				c.arc(p.x * w, p.y * h, 1.6, 0, Math.PI * 2);
-				c.fill();
-			}
-			raf = requestAnimationFrame(frame);
-		}
-		frame();
-		return () => {
-			cancelAnimationFrame(raf);
-			window.removeEventListener('resize', resize);
-		};
 	});
 
 	function goTickets(e: Event) {
@@ -195,8 +122,14 @@
 </script>
 
 <svelte:head>
-	<title>{EVENT_NAME} · {BRAND}</title>
+	<title>{EVENT_NAME} · {DATE}</title>
 	<meta name="robots" content="noindex" />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700;900&display=swap"
+		rel="stylesheet"
+	/>
 </svelte:head>
 
 <svelte:window on:scroll={onScroll} />
@@ -217,94 +150,96 @@
 	<!-- demo ribbon -->
 	<div class="ribbon">
 		{#if wireframe}
-			WIREFRAME MODE · structural skeleton (the sketch) · toggle off for the real B27 content
+			WIREFRAME MODE · structural skeleton (the sketch) · toggle off for the styled B19-style page
 		{:else}
-			TEMPLATE DEMO · “{EVENT_NAME}-style” one-pager · content from conference.b.tc · toggle wireframe to see the structure
+			TEMPLATE DEMO · a “Bitcoin 2019-style” one-pager · content from conference.b.tc · toggle wireframe to see the structure
 		{/if}
 	</div>
 
-	<!-- ── Background: video OR animated canvas, behind everything ──────────────── -->
-	<div class="bg" aria-hidden="true">
-		{#if BG_VIDEO}
-			<!-- svelte-ignore a11y_media_has_caption -->
-			<video src={BG_VIDEO} autoplay muted loop playsinline></video>
-		{:else}
-			<canvas bind:this={canvas}></canvas>
-		{/if}
-		<div class="bg-grain"></div>
+	<!-- bubbly orange background + the contained-white-column vibe lives in CSS -->
+	<div class="bubbles" aria-hidden="true">
+		{#each Array(14) as _, i}<span class="bub b{i}"></span>{/each}
 	</div>
 
-	<!-- ── B: sticky solid navbar — appears once A2 detaches on scroll ──────────── -->
-	<header class="stickynav" class:show={scrolled} data-wf="A2* · STICKY NAVBAR (on scroll)">
-		<a class="snav-brand" href="#top">{BRAND}</a>
-		<nav class="snav-links" aria-label="Sections">
-			{#each NAV as n}
-				<a href={n.href}>{n.label}</a>
-			{/each}
-		</nav>
-		<div class="snav-right">
-			<!-- A3 social rides inside the sticky bar -->
-			<div class="snav-social">
-				{#each SOCIAL as s}<a href={s.href}>{s.label}</a>{/each}
-			</div>
-			<a class="snav-cta" href="#tickets" onclick={goTickets}>Get Tickets</a>
+	<!-- ── periwinkle top announcement bar (real B19 has one for next year) ─────── -->
+	<div class="topbar" data-wf="A0 · next-year announcement bar">
+		<div class="tb-left">
+			<span class="pin">◉</span> {EVENT_NAME.replace('BITCOIN ', 'Bitcoin ')} — {CITY}
+			<span class="tb-cal">▦ {DATE}</span>
 		</div>
+		<div class="tb-mid">
+			<strong>{NEXT.label}</strong>
+			<a class="tb-brand" href={NEXT.href} onclick={goTickets}>
+				<span class="coin sm">₿</span><em>{NEXT.brand}</em>
+			</a>
+		</div>
+		<a class="tb-social" href={SOCIAL[0].href} target="_blank" rel="noopener">𝕏 @BitcoinConf</a>
+	</div>
+
+	<!-- ── B: sticky white navbar — appears once A2 detaches on scroll ──────────── -->
+	<header class="stickynav" class:show={scrolled} data-wf="A2* · STICKY NAVBAR (on scroll)">
+		<a class="snav-brand" href="#top">
+			<span class="coin">₿</span><strong>{BRAND_PRE}</strong><span class="yr">{BRAND_YR}</span>
+		</a>
+		<nav class="snav-links" aria-label="Sections">
+			{#each NAV as n}<a href={n.href}>{n.label}</a>{/each}
+		</nav>
+		<a class="snav-cta" href="#tickets" onclick={goTickets}>Register</a>
 		<button class="snav-burger" aria-label="Menu" onclick={() => (mobileOpen = !mobileOpen)}>☰</button>
 	</header>
 
 	{#if mobileOpen}
 		<div class="mobile-menu">
 			{#each NAV as n}<a href={n.href} onclick={() => (mobileOpen = false)}>{n.label}</a>{/each}
-			<a class="mm-cta" href="#tickets" onclick={goTickets}>Get Tickets</a>
+			<a class="mm-cta" href="#tickets" onclick={goTickets}>Register</a>
 		</div>
 	{/if}
 
 	<!-- ════════════════════════════════════════════════════════════════════════
-	     A · HERO — fullscreen, centered, floats over the bg video
+	     A · HERO — orange field, floating bubbles, centered mark + float-nav
 	     ════════════════════════════════════════════════════════════════════════ -->
-	<section class="hero" id="top" data-wf="A · HERO (video bg, fullscreen)">
+	<section class="hero" id="top" data-wf="A · HERO (orange field + bubbles)">
 		<!-- A3 · corners: social (left) + location (right) -->
 		<div class="corner tl" data-wf="A3 · social">
-			{#each SOCIAL as s}<a href={s.href}>{s.label}</a>{/each}
+			{#each SOCIAL as s}<a href={s.href} target="_blank" rel="noopener">{s.label}</a>{/each}
 		</div>
 		<div class="corner tr" data-wf="A3 · location">
 			<span>{CITY}</span>
 			<span class="muted">{VENUE}</span>
 		</div>
 
-		<!-- contained centered column — bg shows on the sides -->
 		<div class="hero-inner">
-			<!-- A1 · hero logo -->
-			<div class="mark" data-wf="A1 · logo">{BRAND}</div>
-			<h1 class="evt">{EVENT_NAME}</h1>
-			<p class="tag">{TAGLINE}</p>
-			<div class="meta">
-				<span>{DATE}</span><span class="dot">·</span><span>{CITY}</span>
+			<!-- A1 · the "YEAR + ₿ coin" numeral mark (white on orange) -->
+			<div class="yearmark" data-wf="A1 · logo (year + ₿)">
+				<span class="ym-top">20</span>
+				<span class="ym-coin">₿</span>
+				<span class="ym-bot">{BRAND_YR}</span>
 			</div>
 
-			<!-- A2 · nav items float as text links. On scroll these hand off to the
-			     sticky bar above (which fades in as this fades out). -->
+			<h1 class="hero-line">{HERO_LINE}</h1>
+			<p class="tag">{TAGLINE}</p>
+			<div class="meta"><span>{DATE}</span><span class="dot">·</span><span>{VENUE}, {CITY}</span></div>
+
+			<!-- A2 · nav items float here; on scroll they hand off to the sticky bar -->
 			<nav class="float-nav" class:lift={scrolled} aria-label="Primary" data-wf="A2 · nav (floats → sticky)">
-				{#each NAV as n}
-					<a href={n.href}>{n.label}</a>
-				{/each}
+				{#each NAV as n}<a href={n.href}>{n.label}</a>{/each}
 			</nav>
 
-			<a class="hero-cta" href="#tickets" onclick={goTickets}>Get Involved →</a>
+			<a class="hero-cta" href="#tickets" onclick={goTickets}>View Video Recap</a>
 		</div>
 
-		<div class="fold-label">↑ ABOVE THE FOLD</div>
-		<a class="scrollcue" href="#history" aria-label="Scroll"><span>Scroll</span><span class="chev">⌄</span></a>
+		<div class="fold-label">↑ above the fold</div>
+		<a class="scrollcue" href="#history" aria-label="Scroll"><span>scroll</span><span class="chev">⌄</span></a>
 	</section>
 
 	<!-- ════════════════════════════════════════════════════════════════════════
-	     B · contained "mid section" — history / key moments + ticket CTA
-	     Centered content, bg video still visible on the flanks.
+	     B · THE STORY — contained white column, orange shows on the sides
 	     ════════════════════════════════════════════════════════════════════════ -->
 	<section class="band" id="history" data-wf="B1 · THE STORY / history + key moments">
-		<div class="contain">
-			<div class="eyebrow">The Story</div>
+		<div class="sheet">
+			<div class="eyebrow">An Annual Event for the Bitcoin Community</div>
 			<h2 class="band-h">Setting the signal since 2019.</h2>
+			<p class="lede orange">{INTRO}</p>
 			<p class="lede">{STORY}</p>
 
 			<ol class="timeline">
@@ -316,7 +251,6 @@
 				{/each}
 			</ol>
 
-			<!-- pull-quote from the live site -->
 			<figure class="pullquote">
 				<blockquote>“{QUOTE.text}”</blockquote>
 				<figcaption>— {QUOTE.who}, <span class="muted">{QUOTE.role}</span></figcaption>
@@ -331,55 +265,44 @@
 	</section>
 
 	<!-- ════════════════════════════════════════════════════════════════════════
-	     C · BY THE NUMBERS — deliberately NOT a generic grid. Oversized stat rows.
+	     C · BY THE NUMBERS — the real B19 stat row, on a white sheet
 	     ════════════════════════════════════════════════════════════════════════ -->
-	<section class="speakers" id="numbers" data-wf="C · BY THE NUMBERS">
-		<div class="contain">
-			<div class="sec-head">
-				<div class="eyebrow light">By the Numbers</div>
-				<h2>The scale speaks first.</h2>
-				<p class="sub">What a reunion for a fragmented ecosystem became.</p>
-			</div>
-
-			<ul class="spk-list">
-				{#each NUMBERS as n, i}
-					<li class="spk num" style="--off:{i % 2 === 0 ? '0' : '1'}">
-						<span class="spk-idx">{String(i + 1).padStart(2, '0')}</span>
-						<span class="num-val">{n.val}</span>
-						<span class="spk-body">
-							<span class="spk-name">{n.label}</span>
-						</span>
-					</li>
+	<section class="numbers" id="numbers" data-wf="C · BY THE NUMBERS">
+		<div class="sheet">
+			<div class="eyebrow center">Bitcoin 2027 by the Numbers</div>
+			<div class="num-row">
+				{#each NUMBERS as n}
+					<div class="num-cell">
+						<div class="num-val">{n.val}</div>
+						<div class="num-label">{n.label}</div>
+					</div>
 				{/each}
-			</ul>
+			</div>
 		</div>
 	</section>
 
 	<!-- Nashville / venue strip (C — "points you somewhere") -->
-	<section class="agenda" id="nashville" data-wf="C · NASHVILLE / VENUE">
-		<div class="contain">
-			<div class="eyebrow light">Nashville</div>
+	<section class="nashville" id="nashville" data-wf="C · NASHVILLE / VENUE">
+		<div class="sheet">
+			<div class="eyebrow">Nashville</div>
 			<h2 class="nash-h">Home turf.</h2>
 			<p class="sub nash-sub">
-				BTC Inc. is headquartered in Nashville — we built the Bitcoin Museum here. B24 was where
-				the Reserve Bill was unveiled and the first sitting president addressed this community.
+				BTC Inc. is headquartered in Nashville — we built the Bitcoin Museum here. B24 was where the
+				Reserve Bill was unveiled and the first sitting president addressed this community.
 			</p>
+			<div class="venue-grid">
+				{#each VENUE_FACTS as f}
+					<div class="ag-col"><div class="ag-day">{f.k}</div><div class="ag-theme">{f.v}</div></div>
+				{/each}
+			</div>
+			<div class="venue-addr">{VENUE} · {VENUE_ADDR}</div>
 		</div>
-		<div class="contain agenda-grid venue-grid">
-			{#each VENUE_FACTS as f}
-				<div class="ag-col">
-					<div class="ag-day">{f.k}</div>
-					<div class="ag-theme">{f.v}</div>
-				</div>
-			{/each}
-		</div>
-		<div class="contain venue-addr">{VENUE} · {VENUE_ADDR}</div>
 	</section>
 
-	<!-- SPONSORS (C) — marquee, not a logo soup grid -->
+	<!-- SPONSORS (C) — marquee, Moon → Block -->
 	<section class="sponsors" id="sponsors" data-wf="C · SPONSORS (Moon → Block)">
-		<div class="contain">
-			<div class="eyebrow light center">Past Sponsors · B26 — 200+ companies, Moon → Block</div>
+		<div class="sheet">
+			<div class="eyebrow center">Past Sponsors · B26 — 200+ companies, Moon → Block</div>
 		</div>
 		<div class="marquee" aria-label="Sponsors">
 			<div class="track">
@@ -392,26 +315,23 @@
 	     D · FINAL CTA — tickets + "BTC Inc" footer
 	     ════════════════════════════════════════════════════════════════════════ -->
 	<section class="tickets" id="tickets" data-wf="D · GET INVOLVED / final CTA">
-		<div class="contain">
+		<div class="sheet">
 			<div class="sec-head center">
 				<div class="eyebrow">Get Involved</div>
 				<h2>Be in the room.</h2>
-				<p class="sub">Priced in sats. {DATE} · {CITY}.</p>
+				<p class="sub">Priced in sats. {DATE} · {VENUE}, {CITY}.</p>
 			</div>
 			<div class="tiers">
 				{#each TIERS as t}
 					<div class="tier" class:feature={t.feature}>
 						{#if t.feature}<div class="tier-flag">MOST POPULAR</div>{/if}
 						<div class="tier-name">{t.name}</div>
-						<div class="tier-price">
-							<span class="btc">₿{t.price}</span>
-							<span class="usd">{t.usd}</span>
-						</div>
+						<div class="tier-price"><span class="btc">₿{t.price}</span><span class="usd">{t.usd}</span></div>
 						<ul class="tier-perks">
 							{#each t.perks as p}<li>{p}</li>{/each}
 						</ul>
 						<a class="tier-cta" href="#tickets" onclick={(e) => e.preventDefault()}>
-							{t.feature ? 'Get the Whale Pass' : 'Select'}
+							{t.feature ? 'Get the Whale Pass' : 'Register'}
 						</a>
 					</div>
 				{/each}
@@ -420,8 +340,10 @@
 	</section>
 
 	<footer class="foot" data-wf="D · FOOTER (BTC Inc)">
-		<div class="contain foot-in">
-			<div class="foot-brand">{BRAND}</div>
+		<div class="sheet foot-in">
+			<div class="foot-brand">
+				<span class="coin">₿</span><strong>{BRAND_PRE}</strong><span class="yr">{BRAND_YR}</span>
+			</div>
 			<div class="foot-cols">
 				<div>
 					<div class="fc-h">Event</div>
@@ -438,22 +360,30 @@
 			</div>
 			<div class="foot-bottom">
 				<span>Bitcoin Conference is published by BTC Inc. — a subsidiary of Nakamoto Inc. (NASDAQ: NAKA).</span>
-				<span class="muted">A “{EVENT_NAME}-style” template · content from conference.b.tc · built on tommy.studio</span>
+				<span class="muted">A “Bitcoin 2019-style” template · content from conference.b.tc · built on tommy.studio</span>
 			</div>
 		</div>
 	</footer>
+
+	<!-- the classic "₿ bitcoin accepted" sticky corner badge -->
+	<div class="accepted" aria-hidden="true"><span class="coin">₿</span> bitcoin<small>ACCEPTED</small></div>
 </div>
 
 <style>
-	/* scoped palette */
+	/* ── palette: the REAL Bitcoin 2019 orange template ──────────────────────── */
 	.b27 {
-		--orange: #f7931a;
-		--ink: #f5f2ea;
-		--bg0: #080808;
-		--mut: #8a8378;
-		background: var(--bg0);
+		--orange: #ff9500; /* accent / coin */
+		--field: #ffaa33; /* bright body orange */
+		--field-2: #ff9d1c;
+		--ink: #333333;
+		--paper: #ffffff;
+		--sheet-bg: #f3f6f8; /* the off-white content column */
+		--peri: #6a6cb3; /* announcement bar */
+		--green: #5bb85b; /* register button */
+		--mut: #8a8a8a;
+		background: var(--field);
 		color: var(--ink);
-		font-family: 'Inter', system-ui, -apple-system, sans-serif;
+		font-family: 'Titillium Web', system-ui, -apple-system, sans-serif;
 		min-height: 100vh;
 		position: relative;
 		overflow-x: hidden;
@@ -465,46 +395,71 @@
 	.muted {
 		color: var(--mut);
 	}
+	.coin {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.05em;
+		height: 1.05em;
+		border-radius: 50%;
+		background: var(--orange);
+		color: #fff;
+		font-weight: 900;
+		font-style: normal;
+		transform: translateY(-0.03em);
+	}
+	.coin.sm {
+		font-size: 0.9em;
+	}
 
 	.ribbon {
 		position: relative;
 		z-index: 60;
-		background: var(--orange);
-		color: #140c02;
+		background: #222;
+		color: #fff;
 		font-size: 11px;
-		letter-spacing: 0.06em;
+		letter-spacing: 0.05em;
 		font-weight: 700;
 		text-align: center;
 		padding: 7px 14px;
 		text-transform: uppercase;
 	}
 
-	/* ── background layer ───────────────────────────────────────────────────── */
-	.bg {
+	/* ── bubbly orange background (fixed, behind the contained columns) ───────── */
+	.bubbles {
 		position: fixed;
 		inset: 0;
 		z-index: 0;
+		overflow: hidden;
+		background: radial-gradient(120% 90% at 50% 0%, var(--field) 0%, var(--field-2) 60%, #f38f12 100%);
 	}
-	.bg video,
-	.bg canvas {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		display: block;
-	}
-	.bg-grain {
+	.bub {
 		position: absolute;
-		inset: 0;
-		pointer-events: none;
-		background-image: radial-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-		background-size: 3px 3px;
-		mix-blend-mode: overlay;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.11);
 	}
-	/* everything above the bg */
+	/* a scattered, varied field of translucent circles like the real site */
+	.b0 { width: 420px; height: 420px; left: -90px; top: 8%; background: rgba(255, 255, 255, 0.08); }
+	.b1 { width: 150px; height: 150px; left: 12%; top: 30%; }
+	.b2 { width: 70px; height: 70px; left: 24%; top: 12%; background: rgba(255, 150, 0, 0.3); }
+	.b3 { width: 300px; height: 300px; right: -60px; top: 20%; background: rgba(255, 255, 255, 0.07); }
+	.b4 { width: 46px; height: 46px; right: 18%; top: 9%; background: rgba(255, 150, 0, 0.35); }
+	.b5 { width: 110px; height: 110px; right: 10%; top: 42%; }
+	.b6 { width: 220px; height: 220px; left: 6%; top: 60%; background: rgba(255, 255, 255, 0.06); }
+	.b7 { width: 60px; height: 60px; left: 40%; top: 72%; background: rgba(255, 150, 0, 0.28); }
+	.b8 { width: 180px; height: 180px; right: 20%; top: 66%; }
+	.b9 { width: 34px; height: 34px; left: 55%; top: 24%; background: rgba(255, 150, 0, 0.4); }
+	.b10 { width: 90px; height: 90px; right: 34%; top: 85%; }
+	.b11 { width: 260px; height: 260px; left: 30%; top: 88%; background: rgba(255, 255, 255, 0.05); }
+	.b12 { width: 54px; height: 54px; left: 8%; top: 46%; background: rgba(255, 150, 0, 0.3); }
+	.b13 { width: 120px; height: 120px; right: 4%; top: 92%; }
+
+	/* everything above the background */
+	.topbar,
 	.hero,
 	.band,
-	.speakers,
-	.agenda,
+	.numbers,
+	.nashville,
 	.sponsors,
 	.tickets,
 	.foot,
@@ -514,13 +469,62 @@
 		z-index: 10;
 	}
 
-	.contain {
-		max-width: 980px;
+	/* the contained content column — orange shows on the sides */
+	.sheet {
+		max-width: 1040px;
 		margin: 0 auto;
-		padding: 0 24px;
+		padding: 0 40px;
 	}
 
-	/* ── B: sticky navbar (hidden until scrolled) ───────────────────────────── */
+	/* ── periwinkle top announcement bar ─────────────────────────────────────── */
+	.topbar {
+		z-index: 55;
+		background: #6a6cb3;
+		color: #fff;
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		padding: 9px 22px;
+		font-size: 13px;
+		flex-wrap: wrap;
+		justify-content: space-between;
+	}
+	.topbar .pin {
+		color: #fff;
+		opacity: 0.85;
+	}
+	.tb-left {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		font-weight: 600;
+		opacity: 0.95;
+	}
+	.tb-cal {
+		opacity: 0.8;
+	}
+	.tb-mid {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		font-weight: 700;
+	}
+	.tb-brand {
+		display: inline-flex;
+		align-items: center;
+		gap: 2px;
+		font-weight: 900;
+	}
+	.tb-brand em {
+		font-style: italic;
+		color: var(--orange);
+	}
+	.tb-social {
+		font-weight: 700;
+		opacity: 0.95;
+	}
+
+	/* ── B: sticky white navbar (hidden until scrolled) ──────────────────────── */
 	.stickynav {
 		position: fixed;
 		top: 0;
@@ -530,10 +534,9 @@
 		display: flex;
 		align-items: center;
 		gap: 20px;
-		padding: 12px 24px;
-		background: rgba(10, 9, 8, 0.82);
-		backdrop-filter: blur(12px);
-		border-bottom: 1px solid rgba(247, 147, 26, 0.18);
+		padding: 14px 32px;
+		background: #fff;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
 		transform: translateY(-110%);
 		opacity: 0;
 		transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s;
@@ -543,165 +546,177 @@
 		opacity: 1;
 	}
 	.snav-brand {
-		font-weight: 900;
-		letter-spacing: 0.04em;
-		font-size: 20px;
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+		font-size: 26px;
+		font-weight: 700;
+		font-style: italic;
+		color: var(--ink);
+	}
+	.snav-brand .coin {
+		font-style: normal;
+		font-size: 22px;
+		margin-right: 2px;
+	}
+	.snav-brand .yr {
 		color: var(--orange);
+		font-weight: 900;
 	}
 	.snav-links {
 		display: flex;
-		gap: 22px;
-		margin-left: 8px;
-		font-size: 13px;
+		gap: 26px;
+		margin-left: 24px;
+		font-size: 14px;
+		font-weight: 700;
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
+		color: var(--ink);
 	}
 	.snav-links a:hover {
 		color: var(--orange);
 	}
-	.snav-right {
-		margin-left: auto;
-		display: flex;
-		align-items: center;
-		gap: 16px;
-	}
-	.snav-social {
-		display: flex;
-		gap: 12px;
-		font-size: 11px;
-		letter-spacing: 0.08em;
-		color: var(--mut);
-	}
-	.snav-social a:hover {
-		color: var(--ink);
-	}
 	.snav-cta {
-		background: var(--orange);
-		color: #140c02;
-		font-weight: 800;
-		font-size: 12px;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-		padding: 9px 16px;
-		border-radius: 2px;
+		margin-left: auto;
+		background: var(--green);
+		color: #fff;
+		font-weight: 700;
+		font-size: 15px;
+		padding: 11px 22px;
+		border-radius: 3px;
 	}
 	.snav-cta:hover {
-		filter: brightness(1.08);
+		filter: brightness(1.06);
 	}
 	.snav-burger {
 		display: none;
 		background: none;
 		border: 0;
 		color: var(--ink);
-		font-size: 20px;
-		margin-left: auto;
+		font-size: 24px;
 		cursor: pointer;
 	}
 
 	.mobile-menu {
 		position: fixed;
-		top: 48px;
+		top: 60px;
 		left: 0;
 		right: 0;
 		z-index: 49;
-		background: rgba(10, 9, 8, 0.96);
-		backdrop-filter: blur(12px);
-		padding: 16px 24px 24px;
+		background: #fff;
+		padding: 16px 32px 24px;
 		display: none;
 		flex-direction: column;
 		gap: 14px;
 		font-size: 16px;
+		font-weight: 700;
 		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		border-bottom: 1px solid rgba(247, 147, 26, 0.18);
+		box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
 	}
 	.mm-cta {
-		color: var(--orange);
-		font-weight: 800;
+		color: var(--green);
 	}
 
-	/* ── A: HERO ─────────────────────────────────────────────────────────────── */
+	/* ── A: HERO (orange field) ──────────────────────────────────────────────── */
 	.hero {
-		min-height: 100vh;
+		min-height: 94vh;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
 		text-align: center;
-		padding: 80px 24px 60px;
+		padding: 70px 24px 80px;
+		color: #fff;
 	}
 	.corner {
 		position: absolute;
-		top: 24px;
+		top: 20px;
 		display: flex;
 		gap: 16px;
 		font-size: 12px;
-		letter-spacing: 0.1em;
+		font-weight: 700;
+		letter-spacing: 0.08em;
 		text-transform: uppercase;
+		color: #fff;
 	}
 	.corner.tl {
-		left: 28px;
-	}
-	.corner.tl a {
-		color: var(--mut);
+		left: 30px;
 	}
 	.corner.tl a:hover {
-		color: var(--orange);
+		color: #333;
 	}
 	.corner.tr {
-		right: 28px;
+		right: 30px;
 		flex-direction: column;
 		text-align: right;
-		gap: 4px;
+		gap: 3px;
 	}
-	.corner.tr span:first-child {
-		color: var(--ink);
-		font-weight: 700;
+	.corner.tr .muted {
+		color: rgba(255, 255, 255, 0.7);
 	}
 
 	.hero-inner {
-		max-width: 760px;
+		max-width: 780px;
 	}
-	.mark {
-		width: 112px;
-		height: 112px;
-		margin: 0 auto 26px;
-		border: 2px solid var(--orange);
+	/* the "YEAR + ₿ coin" numeral mark */
+	.yearmark {
+		position: relative;
+		display: inline-grid;
+		justify-items: center;
+		line-height: 0.72;
+		margin: 0 auto 22px;
+		color: #fff;
+		font-weight: 900;
+		letter-spacing: -0.03em;
+	}
+	.ym-top,
+	.ym-bot {
+		font-size: clamp(64px, 13vw, 128px);
+	}
+	.ym-bot {
+		margin-left: 0.5em;
+	}
+	.ym-coin {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: clamp(52px, 10vw, 98px);
+		height: clamp(52px, 10vw, 98px);
 		border-radius: 50%;
+		background: var(--orange);
+		color: #fff;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-weight: 900;
-		font-size: 38px;
-		letter-spacing: 0.02em;
-		color: var(--orange);
-		box-shadow: 0 0 60px rgba(247, 147, 26, 0.25);
+		font-size: clamp(30px, 6vw, 58px);
+		box-shadow: 0 10px 30px rgba(180, 100, 0, 0.35);
 	}
-	.evt {
-		font-size: clamp(42px, 8vw, 92px);
-		line-height: 0.92;
-		font-weight: 900;
-		letter-spacing: -0.02em;
-		margin: 0 0 18px;
+	.hero-line {
+		font-size: clamp(30px, 5.4vw, 58px);
+		line-height: 1.02;
+		font-weight: 700;
+		margin: 0 0 14px;
 	}
 	.tag {
-		font-size: clamp(15px, 2.2vw, 20px);
-		color: #d8d2c6;
-		max-width: 520px;
-		margin: 0 auto 18px;
+		font-size: clamp(15px, 2.2vw, 21px);
+		font-weight: 600;
+		color: rgba(255, 255, 255, 0.92);
+		margin: 0 auto 14px;
 	}
 	.meta {
-		font-size: 13px;
-		letter-spacing: 0.14em;
+		font-size: 14px;
+		font-weight: 700;
+		letter-spacing: 0.1em;
 		text-transform: uppercase;
-		color: var(--orange);
+		color: #fff;
 		display: flex;
 		gap: 12px;
 		justify-content: center;
-		margin-bottom: 30px;
+		margin-bottom: 28px;
 	}
 	.meta .dot {
-		color: var(--mut);
+		opacity: 0.6;
 	}
 
 	/* A2 float-nav — lifts & fades as the sticky bar takes over */
@@ -710,15 +725,17 @@
 		gap: 30px;
 		justify-content: center;
 		flex-wrap: wrap;
-		font-size: 14px;
-		letter-spacing: 0.06em;
+		font-size: 15px;
+		font-weight: 700;
+		letter-spacing: 0.05em;
 		text-transform: uppercase;
-		margin-bottom: 34px;
+		margin-bottom: 30px;
 		transition: opacity 0.3s, transform 0.4s;
 	}
 	.float-nav a {
 		position: relative;
 		padding-bottom: 4px;
+		color: #fff;
 	}
 	.float-nav a::after {
 		content: '';
@@ -726,8 +743,8 @@
 		left: 0;
 		bottom: 0;
 		width: 0;
-		height: 1px;
-		background: var(--orange);
+		height: 2px;
+		background: #fff;
 		transition: width 0.25s;
 	}
 	.float-nav a:hover::after {
@@ -741,38 +758,41 @@
 
 	.hero-cta {
 		display: inline-block;
-		background: var(--orange);
-		color: #140c02;
-		font-weight: 800;
-		letter-spacing: 0.04em;
+		border: 2px solid #fff;
+		color: #fff;
+		font-weight: 700;
+		letter-spacing: 0.05em;
 		text-transform: uppercase;
-		padding: 15px 30px;
-		border-radius: 2px;
+		padding: 14px 30px;
+		border-radius: 3px;
 		font-size: 14px;
 	}
 	.hero-cta:hover {
-		filter: brightness(1.08);
-		transform: translateY(-1px);
+		background: #fff;
+		color: var(--orange);
 	}
 
 	.fold-label {
 		position: absolute;
-		bottom: 70px;
+		bottom: 64px;
 		left: 50%;
 		transform: translateX(-50%);
 		font-size: 10px;
+		font-weight: 700;
 		letter-spacing: 0.3em;
-		color: rgba(138, 131, 120, 0.5);
+		text-transform: uppercase;
+		color: rgba(255, 255, 255, 0.55);
 	}
 	.scrollcue {
 		position: absolute;
-		bottom: 22px;
+		bottom: 20px;
 		left: 50%;
 		transform: translateX(-50%);
 		font-size: 11px;
+		font-weight: 700;
 		letter-spacing: 0.15em;
 		text-transform: uppercase;
-		color: var(--mut);
+		color: rgba(255, 255, 255, 0.85);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -783,65 +803,89 @@
 		animation: bob 1.6s ease-in-out infinite;
 	}
 	@keyframes bob {
-		0%,
-		100% {
-			transform: translateY(0);
-		}
-		50% {
-			transform: translateY(4px);
-		}
+		0%, 100% { transform: translateY(0); }
+		50% { transform: translateY(4px); }
 	}
 
 	/* ── shared section bits ─────────────────────────────────────────────────── */
 	.eyebrow {
-		font-size: 12px;
-		letter-spacing: 0.22em;
+		font-size: 13px;
+		font-weight: 700;
+		letter-spacing: 0.12em;
 		text-transform: uppercase;
 		color: var(--orange);
-		font-weight: 700;
 		margin-bottom: 14px;
 	}
-	.eyebrow.light {
-		color: var(--mut);
-	}
-	.eyebrow.center,
-	.sec-head.center {
+	.eyebrow.center {
 		text-align: center;
 	}
 	.sec-head {
-		margin-bottom: 40px;
+		margin-bottom: 36px;
 	}
 	.sec-head.center {
-		margin-left: auto;
-		margin-right: auto;
+		text-align: center;
 	}
 	h2 {
-		font-size: clamp(28px, 5vw, 52px);
-		font-weight: 900;
-		letter-spacing: -0.02em;
-		margin: 0 0 12px;
-		line-height: 1;
+		font-size: clamp(30px, 5vw, 50px);
+		font-weight: 700;
+		margin: 0 0 14px;
+		line-height: 1.02;
+		color: var(--ink);
 	}
 	.sub,
 	.lede {
-		color: #cfc9bd;
-		font-size: 16px;
-		max-width: 560px;
+		color: #4a4a4a;
+		font-size: 17px;
+		line-height: 1.55;
+		max-width: 620px;
+	}
+	.lede.orange {
+		color: var(--orange);
+		font-weight: 700;
+		font-size: 19px;
 	}
 	.sec-head.center .sub {
 		margin: 0 auto;
 	}
 
-	/* ── B band: history, floats on bg ───────────────────────────────────────── */
-	.band {
-		padding: 120px 0;
-		background: linear-gradient(180deg, transparent, rgba(8, 8, 8, 0.72) 18%, rgba(8, 8, 8, 0.72) 82%, transparent);
+	/* ── the white content sheets that float over the orange ─────────────────── */
+	.band,
+	.numbers,
+	.nashville,
+	.sponsors,
+	.tickets {
+		padding: 0;
 	}
+	.band .sheet,
+	.numbers .sheet,
+	.nashville .sheet,
+	.tickets .sheet {
+		background: var(--paper);
+		border-radius: 4px;
+		box-shadow: 0 20px 60px rgba(120, 70, 0, 0.14);
+		padding: 72px 64px;
+		max-width: 1040px;
+	}
+	.band {
+		padding-top: 70px;
+	}
+	.numbers,
+	.nashville,
+	.tickets {
+		padding-top: 40px;
+	}
+	.sponsors {
+		padding: 56px 0 40px;
+	}
+	.foot {
+		margin-top: 48px;
+	}
+
 	.timeline {
 		list-style: none;
-		margin: 34px 0 40px;
+		margin: 32px 0 38px;
 		padding: 0;
-		border-left: 1px solid rgba(247, 147, 26, 0.3);
+		border-left: 2px solid rgba(255, 149, 0, 0.35);
 	}
 	.timeline li {
 		position: relative;
@@ -854,45 +898,47 @@
 	.timeline li::before {
 		content: '';
 		position: absolute;
-		left: -5px;
+		left: -6px;
 		top: 6px;
-		width: 9px;
-		height: 9px;
+		width: 10px;
+		height: 10px;
 		border-radius: 50%;
-		background: var(--mut);
+		background: #cfcfcf;
 	}
 	.timeline li.now::before {
 		background: var(--orange);
-		box-shadow: 0 0 14px var(--orange);
+		box-shadow: 0 0 0 4px rgba(255, 149, 0, 0.18);
 	}
 	.t-yr {
 		font-weight: 900;
-		font-size: 22px;
+		font-size: 24px;
 		color: var(--orange);
 	}
 	.t-note {
-		color: #cfc9bd;
+		color: #4a4a4a;
 		font-size: 15px;
 		line-height: 1.5;
 	}
 	.timeline li.now .t-note {
 		color: var(--ink);
+		font-weight: 600;
 	}
 
 	.inline-cta {
 		display: inline-flex;
 		align-items: center;
 		gap: 14px;
-		border: 1px solid var(--orange);
-		padding: 16px 24px;
-		border-radius: 2px;
+		background: var(--orange);
+		color: #fff;
+		padding: 16px 26px;
+		border-radius: 3px;
 		font-weight: 700;
-		letter-spacing: 0.03em;
-		transition: background 0.2s, color 0.2s;
+		letter-spacing: 0.02em;
+		transition: filter 0.2s, transform 0.2s;
 	}
 	.inline-cta:hover {
-		background: var(--orange);
-		color: #140c02;
+		filter: brightness(1.06);
+		transform: translateY(-1px);
 	}
 	.ic-arrow {
 		transition: transform 0.2s;
@@ -901,131 +947,110 @@
 		transform: translateX(4px);
 	}
 
-	/* ── C speakers: offset editorial list (not a generic grid) ──────────────── */
-	.speakers {
-		padding: 110px 0;
-		background: rgba(8, 8, 8, 0.72);
+	.pullquote {
+		margin: 8px 0 38px;
+		border-left: 4px solid var(--orange);
+		padding: 6px 0 6px 24px;
 	}
-	.spk-list {
-		list-style: none;
+	.pullquote blockquote {
 		margin: 0;
-		padding: 0;
+		font-size: clamp(21px, 3.2vw, 30px);
+		font-weight: 700;
+		line-height: 1.25;
+		color: var(--ink);
 	}
-	.spk {
-		display: grid;
-		grid-template-columns: 54px 72px 1fr;
-		gap: 22px;
-		align-items: center;
-		padding: 22px 0;
-		border-top: 1px solid rgba(255, 255, 255, 0.08);
-		margin-left: calc(var(--off) * 7%);
-		transition: margin-left 0.3s, background 0.2s;
-	}
-	.spk:hover {
-		margin-left: 0;
-	}
-	.spk.feature {
-		border-top-color: var(--orange);
-	}
-	.spk-idx {
-		font-size: 13px;
-		color: var(--mut);
-		font-variant-numeric: tabular-nums;
-	}
-	.spk-face {
-		width: 72px;
-		height: 72px;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-weight: 800;
-		font-size: 22px;
-		background: #1a1712;
-		border: 1px solid rgba(247, 147, 26, 0.35);
-		color: var(--orange);
-	}
-	.spk-body {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-	.spk-tag {
-		font-size: 10px;
-		letter-spacing: 0.18em;
-		color: var(--orange);
-		font-weight: 800;
-		margin-bottom: 2px;
-	}
-	.spk-name {
-		font-size: clamp(20px, 3vw, 30px);
-		font-weight: 800;
-		line-height: 1;
-	}
-	.spk-role {
-		color: var(--mut);
+	.pullquote figcaption {
+		margin-top: 12px;
 		font-size: 14px;
 	}
 
-	/* agenda strip */
-	.agenda {
-		padding: 70px 0;
-		background: rgba(8, 8, 8, 0.72);
-		border-top: 1px solid rgba(255, 255, 255, 0.06);
-	}
-	.agenda-grid {
+	/* ── C · by the numbers ──────────────────────────────────────────────────── */
+	.num-row {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 24px;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 20px;
+		margin-top: 30px;
+		text-align: center;
+	}
+	.num-val {
+		font-size: clamp(38px, 6vw, 68px);
+		font-weight: 900;
+		color: var(--orange);
+		line-height: 1;
+		letter-spacing: -0.02em;
+	}
+	.num-label {
+		margin-top: 8px;
+		font-size: 13px;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: #666;
+	}
+
+	/* ── nashville / venue ───────────────────────────────────────────────────── */
+	.nash-h {
+		margin-top: 4px;
+	}
+	.nash-sub {
+		max-width: 640px;
+		margin-bottom: 10px;
+	}
+	.venue-grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 20px;
+		margin-top: 30px;
 	}
 	.ag-col {
-		border-left: 2px solid var(--orange);
-		padding-left: 18px;
+		border-left: 3px solid var(--orange);
+		padding-left: 16px;
 	}
 	.ag-day {
 		font-size: 12px;
-		letter-spacing: 0.2em;
-		color: var(--orange);
-		font-weight: 800;
+		font-weight: 700;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: #888;
 	}
 	.ag-theme {
-		font-size: 22px;
-		font-weight: 800;
-		margin: 6px 0 6px;
+		font-size: 24px;
+		font-weight: 900;
+		margin-top: 4px;
+		color: var(--ink);
 	}
-	.ag-sub {
-		color: var(--mut);
-		font-size: 14px;
-		line-height: 1.5;
+	.venue-addr {
+		margin-top: 26px;
+		font-size: 13px;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: #888;
 	}
 
-	/* sponsors marquee */
-	.sponsors {
-		padding: 80px 0;
-		background: rgba(8, 8, 8, 0.72);
-	}
+	/* ── sponsors marquee (white pills on orange) ────────────────────────────── */
 	.marquee {
-		margin-top: 26px;
+		margin-top: 24px;
 		overflow: hidden;
-		-webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-		mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+		-webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+		mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
 	}
 	.track {
 		display: flex;
-		gap: 56px;
+		gap: 24px;
 		width: max-content;
-		animation: slide 32s linear infinite;
+		animation: slide 30s linear infinite;
 	}
 	.track .logo {
-		font-weight: 800;
-		font-size: 22px;
+		font-weight: 900;
+		font-size: 18px;
 		letter-spacing: 0.06em;
-		color: #6a655c;
-		white-space: nowrap;
-		transition: color 0.2s;
-	}
-	.track .logo:hover {
 		color: var(--ink);
+		white-space: nowrap;
+		background: #fff;
+		padding: 14px 26px;
+		border-radius: 999px;
+		box-shadow: 0 8px 22px rgba(120, 70, 0, 0.16);
 	}
 	@keyframes slide {
 		to {
@@ -1033,37 +1058,32 @@
 		}
 	}
 
-	/* ── D tickets + footer ──────────────────────────────────────────────────── */
-	.tickets {
-		padding: 120px 0;
-		background: linear-gradient(180deg, transparent, rgba(8, 8, 8, 0.85) 20%);
-	}
+	/* ── D · tickets + footer ────────────────────────────────────────────────── */
 	.tiers {
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
 		gap: 20px;
-		margin-top: 20px;
+		margin-top: 24px;
 	}
 	.tier {
-		border: 1px solid rgba(255, 255, 255, 0.12);
-		border-radius: 4px;
-		padding: 30px 24px;
+		border: 1px solid #e4e4e4;
+		border-radius: 6px;
+		padding: 30px 26px;
 		display: flex;
 		flex-direction: column;
-		background: rgba(16, 14, 11, 0.6);
+		background: #fff;
 		position: relative;
 	}
 	.tier.feature {
 		border-color: var(--orange);
-		background: rgba(26, 18, 8, 0.72);
-		box-shadow: 0 0 50px rgba(247, 147, 26, 0.14);
+		box-shadow: 0 14px 40px rgba(255, 149, 0, 0.22);
 	}
 	.tier-flag {
 		position: absolute;
 		top: -11px;
 		left: 24px;
 		background: var(--orange);
-		color: #140c02;
+		color: #fff;
 		font-size: 10px;
 		font-weight: 800;
 		letter-spacing: 0.1em;
@@ -1072,9 +1092,9 @@
 	}
 	.tier-name {
 		font-weight: 800;
-		letter-spacing: 0.1em;
+		letter-spacing: 0.08em;
 		font-size: 14px;
-		color: var(--mut);
+		color: #777;
 		margin-bottom: 14px;
 	}
 	.tier-price {
@@ -1084,12 +1104,12 @@
 		margin-bottom: 20px;
 	}
 	.tier-price .btc {
-		font-size: 34px;
+		font-size: 36px;
 		font-weight: 900;
 		color: var(--orange);
 	}
 	.tier-price .usd {
-		color: var(--mut);
+		color: #999;
 		font-size: 15px;
 	}
 	.tier-perks {
@@ -1103,56 +1123,74 @@
 	}
 	.tier-perks li {
 		font-size: 14px;
-		color: #cfc9bd;
-		padding-left: 20px;
+		color: #555;
+		padding-left: 22px;
 		position: relative;
 	}
 	.tier-perks li::before {
-		content: '✦';
+		content: '₿';
 		position: absolute;
 		left: 0;
 		color: var(--orange);
-		font-size: 11px;
-		top: 2px;
+		font-size: 12px;
+		top: 1px;
+		font-weight: 900;
 	}
 	.tier-cta {
 		text-align: center;
-		border: 1px solid var(--orange);
+		border: 2px solid var(--orange);
 		color: var(--orange);
 		font-weight: 800;
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
 		font-size: 13px;
 		padding: 12px;
-		border-radius: 2px;
+		border-radius: 3px;
 		transition: background 0.2s, color 0.2s;
 	}
 	.tier.feature .tier-cta {
 		background: var(--orange);
-		color: #140c02;
+		color: #fff;
 	}
 	.tier-cta:hover {
 		background: var(--orange);
-		color: #140c02;
+		color: #fff;
 	}
 
 	.foot {
-		background: #050505;
-		border-top: 1px solid rgba(247, 147, 26, 0.18);
-		padding: 60px 0 40px;
+		background: #2a2a2a;
+		color: #cfcfcf;
+		padding: 56px 0 40px;
+		position: relative;
+		z-index: 10;
+	}
+	.foot .sheet {
+		background: transparent;
+		box-shadow: none;
 	}
 	.foot-brand {
-		font-size: 40px;
-		font-weight: 900;
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+		font-size: 34px;
+		font-weight: 700;
+		font-style: italic;
+		color: #fff;
+		margin-bottom: 28px;
+	}
+	.foot-brand .coin {
+		font-style: normal;
+		font-size: 28px;
+	}
+	.foot-brand .yr {
 		color: var(--orange);
-		letter-spacing: 0.02em;
-		margin-bottom: 30px;
+		font-weight: 900;
 	}
 	.foot-cols {
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
 		gap: 24px;
-		margin-bottom: 40px;
+		margin-bottom: 38px;
 	}
 	.foot-cols > div {
 		display: flex;
@@ -1162,13 +1200,13 @@
 	}
 	.foot-cols a,
 	.foot-cols span {
-		color: var(--mut);
+		color: #b5b5b5;
 	}
 	.foot-cols a:hover {
-		color: var(--ink);
+		color: #fff;
 	}
 	.fc-h {
-		color: var(--ink) !important;
+		color: #fff !important;
 		font-weight: 700;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
@@ -1181,60 +1219,38 @@
 		flex-wrap: wrap;
 		gap: 10px;
 		padding-top: 24px;
-		border-top: 1px solid rgba(255, 255, 255, 0.08);
+		border-top: 1px solid rgba(255, 255, 255, 0.12);
 		font-size: 12px;
-		color: var(--mut);
+		color: #9a9a9a;
 	}
 
-	/* ── By the Numbers: oversized stat value in place of the avatar ─────────── */
-	.spk.num {
-		grid-template-columns: 54px auto 1fr;
-	}
-	.num-val {
-		font-size: clamp(34px, 7vw, 68px);
-		font-weight: 900;
-		letter-spacing: -0.02em;
-		color: var(--orange);
-		line-height: 1;
-		font-variant-numeric: tabular-nums;
-	}
-
-	/* ── pull-quote ──────────────────────────────────────────────────────────── */
-	.pullquote {
-		margin: 8px 0 40px;
-		border-left: 3px solid var(--orange);
-		padding: 6px 0 6px 24px;
-	}
-	.pullquote blockquote {
-		margin: 0;
-		font-size: clamp(20px, 3.2vw, 30px);
+	/* ── "₿ bitcoin accepted" sticky corner badge ────────────────────────────── */
+	.accepted {
+		position: fixed;
+		left: 0;
+		bottom: 18px;
+		z-index: 40;
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		background: rgba(255, 255, 255, 0.16);
+		color: #fff;
 		font-weight: 700;
-		line-height: 1.25;
-		letter-spacing: -0.01em;
+		font-style: italic;
+		font-size: 16px;
+		padding: 8px 14px 8px 12px;
+		border-radius: 0 4px 4px 0;
+		backdrop-filter: blur(2px);
 	}
-	.pullquote figcaption {
-		margin-top: 12px;
+	.accepted small {
+		font-style: normal;
+		font-size: 9px;
+		font-weight: 700;
+		letter-spacing: 0.1em;
+		opacity: 0.85;
+	}
+	.accepted .coin {
 		font-size: 14px;
-		letter-spacing: 0.02em;
-	}
-
-	/* ── nashville / venue ───────────────────────────────────────────────────── */
-	.nash-h {
-		margin-top: 4px;
-	}
-	.nash-sub {
-		max-width: 620px;
-		margin-bottom: 8px;
-	}
-	.venue-grid {
-		margin-top: 30px;
-	}
-	.venue-addr {
-		margin-top: 26px;
-		font-size: 13px;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--mut);
 	}
 
 	/* ── wireframe toggle button (fixed, always on top) ──────────────────────── */
@@ -1256,8 +1272,9 @@
 		letter-spacing: 0.06em;
 		text-transform: uppercase;
 		cursor: pointer;
-		box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+		box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
 		transition: background 0.2s, color 0.2s, border-color 0.2s;
+		font-family: 'Titillium Web', system-ui, sans-serif;
 	}
 	.wf-toggle:hover {
 		border-color: var(--orange);
@@ -1279,37 +1296,48 @@
 	}
 
 	/* ── responsive ──────────────────────────────────────────────────────────── */
-	@media (max-width: 760px) {
-		.snav-links,
-		.snav-social,
+	@media (max-width: 820px) {
+		.snav-links {
+			display: none;
+		}
 		.snav-cta {
 			display: none;
 		}
 		.snav-burger {
 			display: block;
+			margin-left: auto;
 		}
 		.mobile-menu {
 			display: flex;
 		}
-		.corner {
-			font-size: 10px;
+		.topbar {
+			font-size: 11px;
+			gap: 8px;
 		}
-		.agenda-grid,
+		.tb-left {
+			display: none;
+		}
+		.sheet {
+			padding: 0 20px;
+		}
+		.band .sheet,
+		.numbers .sheet,
+		.nashville .sheet,
+		.tickets .sheet {
+			padding: 48px 24px;
+		}
+		.num-row,
+		.venue-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
 		.tiers,
 		.foot-cols {
 			grid-template-columns: 1fr;
 		}
-		.spk {
-			grid-template-columns: 36px 56px 1fr;
-			gap: 14px;
-			margin-left: 0 !important;
-		}
-		.spk-face {
-			width: 56px;
-			height: 56px;
-			font-size: 18px;
-		}
 		.fold-label {
+			display: none;
+		}
+		.accepted {
 			display: none;
 		}
 	}
@@ -1326,9 +1354,9 @@
 		background: #f4f4f2;
 		color: #111;
 	}
-	/* kill the background video/canvas + texture */
-	:global(html.wf) .bg,
-	:global(html.wf) .bg-grain {
+	/* kill the orange bubble field + the coin fill + badges */
+	:global(html.wf) .bubbles,
+	:global(html.wf) .accepted {
 		display: none !important;
 	}
 	/* flatten every decorated surface to plain paper */
@@ -1340,9 +1368,17 @@
 		color: #111 !important;
 		border-color: #bbb !important;
 	}
-	:global(html.wf) .ribbon {
+	:global(html.wf) .ribbon,
+	:global(html.wf) .topbar {
 		background: #111 !important;
 		color: #fff !important;
+	}
+	:global(html.wf) .topbar :global(*) {
+		color: #fff !important;
+	}
+	:global(html.wf) .coin {
+		border: 1.5px dashed #999 !important;
+		color: #111 !important;
 	}
 	/* outline the labelled structural blocks + print their label */
 	:global(html.wf) [data-wf] {
@@ -1366,36 +1402,43 @@
 		pointer-events: none;
 		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
 	}
-	/* the sticky navbar label shouldn't overlap the brand — nudge it */
-	:global(html.wf) .stickynav[data-wf]::before {
+	/* the sticky navbar label shouldn't overlap the brand — center it */
+	:global(html.wf) .stickynav[data-wf]::before,
+	:global(html.wf) .topbar[data-wf]::before {
 		top: 50%;
 		left: 50%;
 		transform: translate(-50%, -50%);
 	}
-	/* generic placeholder look for key hero elements */
-	:global(html.wf) .mark {
+	/* placeholder look for the hero mark + buttons */
+	:global(html.wf) .ym-coin {
 		border: 1.5px dashed #999 !important;
-		box-shadow: none !important;
 	}
 	:global(html.wf) .snav-cta,
 	:global(html.wf) .hero-cta,
 	:global(html.wf) .tier-cta,
 	:global(html.wf) .inline-cta,
-	:global(html.wf) .wf-toggle {
+	:global(html.wf) .track .logo {
 		border: 1.5px solid #111 !important;
-	}
-	/* stop the sponsor marquee from scrolling in blueprint mode */
-	:global(html.wf) .track {
-		animation: none !important;
-	}
-	/* flatten rounded corners so blocks read as boxes */
-	:global(html.wf) .tier,
-	:global(html.wf) .spk-face,
-	:global(html.wf) .snav-cta {
 		border-radius: 2px !important;
 	}
-	/* dim the drifting network cue lines that no longer exist */
+	/* stop the sponsor marquee + hero chevron animating in blueprint mode */
+	:global(html.wf) .track,
 	:global(html.wf) .scrollcue .chev {
 		animation: none !important;
+	}
+	/* the hero text is white-on-orange normally; force it readable on paper */
+	:global(html.wf) .hero,
+	:global(html.wf) .corner,
+	:global(html.wf) .float-nav a,
+	:global(html.wf) .fold-label,
+	:global(html.wf) .scrollcue {
+		color: #111 !important;
+	}
+	/* drop the floating white sheets' elevation so blocks read flat */
+	:global(html.wf) .band .sheet,
+	:global(html.wf) .numbers .sheet,
+	:global(html.wf) .nashville .sheet,
+	:global(html.wf) .tickets .sheet {
+		border-radius: 2px !important;
 	}
 </style>
