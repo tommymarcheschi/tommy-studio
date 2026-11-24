@@ -207,7 +207,7 @@
 		Pre-order your tickets for {EVENT_NAME} →
 	</a>
 
-	<!-- bold hero field: real B24 Nashville crowd photo + cosmic wash + dither -->
+	<!-- bold hero field: real B24 Nashville crowd photo + B21 pixel-dither skyline -->
 	<div class="field" aria-hidden="true">
 		<div class="photo" style="background-image:url({HERO_IMG})"></div>
 		<div class="wash"></div>
@@ -216,22 +216,57 @@
 		<div class="horizon"></div>
 	</div>
 
-	<!-- ── B: sticky white navbar — appears once the hero nav detaches on scroll ── -->
-	<header class="stickynav" class:show={scrolled} data-wf="A2* · STICKY NAVBAR (on scroll)">
-		<div class="snav-loc">
-			<div class="snav-social">{#each SOCIAL as s}<a href={s.href} target="_blank" rel="noopener">{s.label}</a>{/each}</div>
-			<span>{CITY}</span><span>{DATE}</span><span>{VENUE}</span>
+	<!-- ════════════════════════════════════════════════════════════════════════
+	     A · HERO (B21 layout) — pixel field; LEFT location block · CENTER glyph ·
+	     RIGHT subscribe box; the white NAV BAR sits pinned at the BOTTOM.
+	     ════════════════════════════════════════════════════════════════════════ -->
+	<section class="hero" id="top" data-wf="A · HERO (B21 pixel field)">
+		<div class="hero-row">
+			<!-- A1 · LEFT — location / city / dates (B21's MANA WYNWOOD / Miami block) -->
+			<div class="hero-left" data-wf="A1 · location block">
+				<div class="hl-venue">{VENUE}</div>
+				<div class="hl-city">{CITY.split(',')[0]}</div>
+				<div class="hl-date">{DATE}</div>
+				<div class="hl-whale">WHALE PASS: {DATE.split('–')[0]}–17</div>
+			</div>
+
+			<!-- A2 · CENTER — the official B27 circular "2₿7" glyph badge -->
+			<div class="hero-mid" data-wf="A2 · glyph badge (2₿7)">
+				<img class="glyph" src={GLYPH} alt={EVENT_NAME} />
+			</div>
+
+			<!-- A3 · RIGHT — subscribe box (B21) -->
+			<div class="hero-right" data-wf="A3 · subscribe box">
+				<div class="sub-head">Subscribe to receive {EVENT_NAME} updates</div>
+				<form class="sub-form" onsubmit={(e) => e.preventDefault()}>
+					<input type="email" placeholder="email address" aria-label="Email address" />
+					<button type="submit">SUBMIT</button>
+				</form>
+			</div>
 		</div>
-		<a class="snav-brand" href="#top">
-			<img src={LOGO_LIGHT} alt={EVENT_NAME} height="26" />
+
+		<a class="scrollcue" href="#history" aria-label="Scroll"><span class="chev">⌄</span></a>
+	</section>
+
+	<!-- ── B21 NAV BAR — sits at the bottom of the hero, then detaches & sticks to
+	     the top on scroll (the signature mechanic). ONE element, repositioned. ── -->
+	<header class="navbar" class:stuck={scrolled} data-wf="A4 · NAV BAR (bottom → sticks top on scroll)">
+		<div class="nb-left">
+			<div class="nb-social">{#each SOCIAL as s}<a href={s.href} target="_blank" rel="noopener">{s.label}</a>{/each}</div>
+			<div class="nb-loc">
+				<span>{CITY}</span><span>{DATE}</span><span>{VENUE}</span>
+			</div>
+		</div>
+		<a class="nb-brand" href="#top">
+			<img src={LOGO_LIGHT} alt={EVENT_NAME} />
 		</a>
-		<div class="snav-right">
-			<nav class="snav-links" aria-label="Sections">
-				{#each NAV as n}<a href={n.href}>{n.label}</a>{/each}
-			</nav>
-			<a class="ticket-btn" href="#tickets" onclick={goTickets}>🎟 TICKETS</a>
+		<div class="nb-right">
+			<a class="ticket-btn" href="#tickets" onclick={goTickets}>TICKETS</a>
 		</div>
-		<button class="snav-burger" aria-label="Menu" onclick={() => (mobileOpen = !mobileOpen)}>☰</button>
+		<button class="nb-burger" aria-label="Menu" onclick={() => (mobileOpen = !mobileOpen)}>☰</button>
+		<nav class="nb-links" aria-label="Sections">
+			{#each NAV as n}<a href={n.href}>{n.label}</a>{/each}
+		</nav>
 	</header>
 
 	{#if mobileOpen}
@@ -242,39 +277,21 @@
 	{/if}
 
 	<!-- ════════════════════════════════════════════════════════════════════════
-	     A · HERO — cosmic field, glyph badge, giant headline, stacked pill CTAs
+	     B21 INTRO — huge uppercase banner + livestream video (sits on the gray page)
 	     ════════════════════════════════════════════════════════════════════════ -->
-	<section class="hero" id="top" data-wf="A · HERO (cosmic field)">
-		<!-- A3 · corners: social (left) + location (right) -->
-		<div class="corner tl" data-wf="A3 · social">
-			{#each SOCIAL as s}<a href={s.href} target="_blank" rel="noopener">{s.label}</a>{/each}
-		</div>
-		<div class="corner tr" data-wf="A3 · location">
-			<span>{CITY}</span>
-			<span class="muted">{VENUE}</span>
-		</div>
-
-		<div class="hero-inner">
-			<!-- A1 · the official B27 circular "2₿7" glyph + wordmark -->
-			<img class="glyph" src={GLYPH} alt="Bitcoin 2027" data-wf="A1 · glyph badge (2₿7)" />
-			<img class="wordmark" src={LOGO_DARK} alt={EVENT_NAME} />
-
-			<h1 class="hero-h">{TAGLINE}</h1>
-			<p class="hero-sub">See you in {VENUE.replace(' Center', '')} · {DATE}</p>
-
-			<!-- A2 · nav items float here; on scroll they hand off to the sticky bar -->
-			<nav class="float-nav" class:lift={scrolled} aria-label="Primary" data-wf="A2 · nav (floats → sticky)">
-				{#each NAV as n}<a href={n.href}>{n.label}</a>{/each}
-			</nav>
-
-			<div class="hero-ctas">
-				<a class="pill green" href="#tickets" onclick={goTickets}>Buy 2027 Tickets</a>
-				<a class="pill orange" href="#history">View the Recap</a>
+	<section class="intro" data-wf="B0 · intro banner + video">
+		<div class="sheet">
+			<h2 class="intro-h">THE LARGEST BITCOIN EVENT IN HISTORY</h2>
+			<div class="video" style="background-image:url({HERO_IMG})">
+				<div class="video-scrim"></div>
+				<div class="video-meta">
+					<span class="vm-badge">▶</span>
+					<span><strong>{EVENT_NAME} Livestream — Day 1</strong><br />Bitcoin Magazine</span>
+				</div>
+				<button class="video-play" aria-label="Play">▶</button>
+				<span class="video-yt">Watch on ▶ YouTube</span>
 			</div>
 		</div>
-
-		<div class="fold-label">↑ above the fold</div>
-		<a class="scrollcue" href="#history" aria-label="Scroll"><span>scroll</span><span class="chev">⌄</span></a>
 	</section>
 
 	<!-- ════════════════════════════════════════════════════════════════════════
@@ -551,8 +568,9 @@
 		position: fixed;
 		inset: 0;
 		z-index: 0;
+		/* B21 purple skyline — bright blue sky up top fading to deep purple city */
 		background:
-			radial-gradient(120% 80% at 50% -10%, #5a2bd6 0%, #360d96 34%, #1a0a4e 62%, #0b0718 100%);
+			linear-gradient(180deg, #8fb4e8 0%, #7f7fe0 24%, #6a3fd6 48%, #4b1fb0 70%, #360d96 100%);
 		overflow: hidden;
 	}
 	/* real B24 Nashville crowd photo, anchored to the top (the hero) */
@@ -563,16 +581,16 @@
 		right: 0;
 		height: 100vh;
 		background-size: cover;
-		background-position: center 30%;
-		opacity: 0.55;
+		background-position: center 38%;
+		opacity: 0.32;
+		mix-blend-mode: luminosity;
 	}
-	/* purple/orange wash over the photo so the white text stays legible */
+	/* purple wash over the photo so the white text stays legible (B21 tint) */
 	.field .wash {
 		position: absolute;
 		inset: 0;
 		background:
-			linear-gradient(180deg, rgba(11, 7, 24, 0.35) 0%, rgba(11, 7, 24, 0.1) 30%, rgba(11, 7, 24, 0.85) 78%, #0b0718 100%),
-			radial-gradient(120% 70% at 50% 8%, rgba(90, 43, 214, 0.5), transparent 70%);
+			linear-gradient(180deg, rgba(120, 90, 220, 0.25) 0%, rgba(74, 31, 176, 0.35) 55%, rgba(54, 13, 150, 0.7) 88%, #0b0718 100%);
 	}
 	/* starfield */
 	.stars {
@@ -589,25 +607,31 @@
 			radial-gradient(1px 1px at 33% 12%, #fff, transparent);
 		opacity: 0.8;
 	}
-	/* B21 pixel-dither signature */
+	/* B21 pixel-dither signature — chunky 8-bit grid over the whole field */
 	.dither {
 		position: absolute;
 		inset: 0;
-		background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-			linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-		background-size: 7px 7px;
+		background-image:
+			linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+			linear-gradient(90deg, rgba(0, 0, 0, 0.07) 1px, transparent 1px);
+		background-size: 9px 9px;
 		mix-blend-mode: overlay;
-		opacity: 0.5;
+		opacity: 0.9;
 	}
-	/* a soft orange glow horizon at the fold */
+	/* scattered 8-bit "city light" pixels — the B21 pixelated-skyline texture */
 	.horizon {
 		position: absolute;
-		left: -10%;
-		right: -10%;
-		bottom: -30%;
-		height: 70%;
-		background: radial-gradient(60% 100% at 50% 0%, rgba(255, 149, 0, 0.28), transparent 70%);
-		filter: blur(10px);
+		inset: 0;
+		background-image:
+			radial-gradient(1px 1px at 12% 62%, rgba(255, 255, 255, 0.5), transparent),
+			radial-gradient(2px 2px at 24% 74%, rgba(180, 150, 255, 0.4), transparent),
+			radial-gradient(1px 1px at 38% 58%, rgba(255, 255, 255, 0.4), transparent),
+			radial-gradient(2px 2px at 61% 80%, rgba(200, 170, 255, 0.4), transparent),
+			radial-gradient(1px 1px at 72% 66%, rgba(255, 255, 255, 0.45), transparent),
+			radial-gradient(2px 2px at 86% 78%, rgba(170, 140, 240, 0.4), transparent),
+			radial-gradient(1px 1px at 92% 60%, rgba(255, 255, 255, 0.4), transparent);
+		background-repeat: no-repeat;
+		opacity: 0.8;
 	}
 
 	/* everything above the field */
@@ -632,108 +656,228 @@
 		padding: 0 44px;
 	}
 
-	/* ── B: sticky white navbar (hidden until scrolled) ──────────────────────── */
-	.stickynav {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		z-index: 50;
+	/* ── A · HERO (B21) — full viewport; left location · center glyph · right sub ── */
+	.hero {
+		min-height: calc(100vh - 92px); /* leave room for the bottom nav bar */
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		padding: 40px 48px 20px;
+		color: #fff;
+	}
+	.hero-row {
 		display: grid;
 		grid-template-columns: 1fr auto 1fr;
 		align-items: center;
-		gap: 24px;
-		padding: 12px 28px;
-		background: #fff;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.14);
-		transform: translateY(-120%);
-		opacity: 0;
-		transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s;
+		gap: 40px;
+		max-width: 1500px;
+		width: 100%;
+		margin: 0 auto;
 	}
-	.stickynav.show {
-		transform: translateY(0);
-		opacity: 1;
+	/* A1 · LEFT location block (B21 MANA WYNWOOD / Miami / JUNE 4–5) */
+	.hero-left {
+		justify-self: end;
+		text-align: right;
+		text-shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
 	}
-	.snav-loc {
+	.hl-venue {
+		font-size: 15px;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #fff;
+	}
+	.hl-city {
+		font-size: clamp(46px, 7vw, 92px);
+		font-weight: 900;
+		line-height: 0.9;
+		margin: 8px 0 10px;
+		color: #fff;
+	}
+	.hl-date {
+		font-size: clamp(20px, 3vw, 34px);
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--orange);
+	}
+	.hl-whale {
+		margin-top: 8px;
+		font-size: 14px;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: #fff;
+	}
+	.hl-whale::first-line {
+		color: #fff;
+	}
+	/* A2 · CENTER glyph badge (real B27 "2₿7") */
+	.hero-mid {
+		justify-self: center;
+	}
+	.glyph {
+		display: block;
+		width: clamp(230px, 26vw, 360px);
+		height: auto;
+		filter: drop-shadow(0 22px 55px rgba(0, 0, 0, 0.35));
+	}
+	/* A3 · RIGHT subscribe box (B21) */
+	.hero-right {
+		justify-self: start;
+		max-width: 360px;
+		width: 100%;
+	}
+	.sub-head {
+		color: var(--orange);
+		font-weight: 700;
+		font-size: 15px;
+		margin-bottom: 10px;
+		text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+	}
+	.sub-form {
 		display: flex;
 		flex-direction: column;
-		gap: 1px;
+		background: var(--orange);
+		padding: 8px;
+		border-radius: 2px;
+		gap: 8px;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+	}
+	.sub-form input {
+		border: 0;
+		border-radius: 2px;
+		padding: 12px 14px;
+		font-size: 15px;
+		font-family: inherit;
+		color: #333;
+	}
+	.sub-form input::placeholder {
+		color: #9a9a9a;
+	}
+	.sub-form button {
+		border: 0;
+		background: #fff;
+		color: #333;
+		font-weight: 900;
+		letter-spacing: 0.08em;
+		font-size: 14px;
+		padding: 12px;
+		border-radius: 2px;
+		cursor: pointer;
+		font-family: inherit;
+		transition: background 0.15s, color 0.15s;
+	}
+	.sub-form button:hover {
+		background: #222;
+		color: #fff;
+	}
+
+	/* ── B21 NAV BAR — bottom of hero, detaches & sticks to top on scroll ──────── */
+	.navbar {
+		position: sticky;
+		top: 0;
+		z-index: 50;
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+		grid-template-areas: 'left brand right' 'links links links';
+		align-items: center;
+		gap: 6px 24px;
+		padding: 12px 34px 10px;
+		background: #fff;
+		box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
+	}
+	.navbar.stuck {
+		box-shadow: 0 4px 18px rgba(0, 0, 0, 0.22);
+	}
+	.nb-left {
+		grid-area: left;
+		display: flex;
+		align-items: center;
+		gap: 14px;
+	}
+	.nb-social {
+		display: flex;
+		gap: 8px;
+		color: var(--orange);
+		font-weight: 900;
+		font-size: 13px;
+	}
+	.nb-social a:hover {
+		color: var(--ink);
+	}
+	.nb-loc {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
 		font-size: 12px;
 		font-weight: 700;
 		color: var(--orange-d);
-		line-height: 1.25;
+		line-height: 1.32;
 	}
-	.snav-social {
-		display: flex;
-		gap: 10px;
-		color: var(--orange);
-		margin-bottom: 2px;
-	}
-	.snav-social a:hover {
-		color: var(--ink);
-	}
-	.snav-brand {
+	.nb-brand {
+		grid-area: brand;
+		justify-self: center;
 		display: inline-flex;
 		align-items: center;
-		justify-self: center;
 	}
-	.snav-brand img {
+	.nb-brand img {
 		display: block;
-		height: 26px;
+		height: 30px;
 		width: auto;
 	}
-	.snav-right {
+	.nb-right {
+		grid-area: right;
 		justify-self: end;
-		display: flex;
-		align-items: center;
-		gap: 18px;
-	}
-	.snav-links {
-		display: flex;
-		gap: 16px;
-		font-size: 12px;
-		font-weight: 700;
-		letter-spacing: 0.02em;
-		text-transform: uppercase;
-		color: var(--ink);
-		white-space: nowrap;
-	}
-	.snav-links a {
-		white-space: nowrap;
-	}
-	.snav-links a:hover {
-		color: var(--orange);
 	}
 	.ticket-btn {
+		display: inline-block;
 		background: var(--green);
 		color: #fff;
 		font-weight: 900;
-		font-size: 13px;
-		letter-spacing: 0.04em;
+		font-size: 15px;
+		letter-spacing: 0.06em;
 		text-transform: uppercase;
-		padding: 10px 16px;
-		border-radius: 4px;
+		padding: 11px 22px;
+		border-radius: 3px;
 		border: 2px solid #3aa83a;
 		white-space: nowrap;
 	}
 	.ticket-btn:hover {
 		filter: brightness(1.06);
 	}
-	.snav-burger {
+	.nb-links {
+		grid-area: links;
+		display: flex;
+		justify-content: center;
+		gap: 26px;
+		padding-top: 6px;
+		font-size: 13px;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--ink);
+	}
+	.nb-links a {
+		white-space: nowrap;
+	}
+	.nb-links a:hover {
+		color: var(--orange);
+	}
+	.nb-burger {
 		display: none;
+		grid-area: right;
+		justify-self: end;
 		background: none;
 		border: 0;
 		color: var(--ink);
-		font-size: 24px;
+		font-size: 26px;
 		cursor: pointer;
-		justify-self: end;
 	}
 
 	.mobile-menu {
-		position: fixed;
-		top: 60px;
-		left: 0;
-		right: 0;
+		position: sticky;
+		top: 56px;
 		z-index: 49;
 		background: #fff;
 		padding: 16px 30px 24px;
@@ -747,124 +891,6 @@
 	}
 	.mm-cta {
 		color: var(--green);
-	}
-
-	/* ── A: HERO (cosmic field) ──────────────────────────────────────────────── */
-	.hero {
-		min-height: 92vh;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		text-align: center;
-		padding: 64px 24px 84px;
-		color: #fff;
-	}
-	.corner {
-		position: absolute;
-		top: 18px;
-		display: flex;
-		gap: 16px;
-		font-size: 12px;
-		font-weight: 700;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: #fff;
-	}
-	.corner.tl {
-		left: 30px;
-	}
-	.corner.tl a:hover {
-		color: var(--orange);
-	}
-	.corner.tr {
-		right: 30px;
-		flex-direction: column;
-		text-align: right;
-		gap: 3px;
-	}
-	.corner.tr .muted {
-		color: rgba(255, 255, 255, 0.7);
-	}
-
-	.hero-inner {
-		max-width: 920px;
-	}
-	/* the official B27 circular "2₿7" glyph (real asset) */
-	.glyph {
-		display: block;
-		width: clamp(104px, 17vw, 150px);
-		height: clamp(104px, 17vw, 150px);
-		margin: 0 auto 22px;
-		filter: drop-shadow(0 18px 50px rgba(255, 149, 0, 0.45));
-	}
-	/* the real "bitcoin 2027" wordmark under the glyph */
-	.wordmark {
-		display: block;
-		width: clamp(240px, 40vw, 430px);
-		height: auto;
-		margin: 0 auto 26px;
-	}
-	.hero-h {
-		font-size: clamp(38px, 8vw, 96px);
-		line-height: 0.92;
-		font-weight: 900;
-		letter-spacing: 0.01em;
-		text-transform: uppercase;
-		margin: 0 0 16px;
-		text-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
-	}
-	.hero-sub {
-		font-size: clamp(15px, 2.4vw, 22px);
-		font-weight: 700;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		color: rgba(255, 255, 255, 0.9);
-		margin: 0 auto 24px;
-	}
-
-	/* A2 float-nav — lifts & fades as the sticky bar takes over */
-	.float-nav {
-		display: flex;
-		gap: 26px;
-		justify-content: center;
-		flex-wrap: wrap;
-		font-size: 14px;
-		font-weight: 700;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-		margin-bottom: 30px;
-		transition: opacity 0.3s, transform 0.4s;
-	}
-	.float-nav a {
-		position: relative;
-		padding-bottom: 4px;
-		color: #fff;
-	}
-	.float-nav a::after {
-		content: '';
-		position: absolute;
-		left: 0;
-		bottom: 0;
-		width: 0;
-		height: 2px;
-		background: var(--orange);
-		transition: width 0.25s;
-	}
-	.float-nav a:hover::after {
-		width: 100%;
-	}
-	.float-nav.lift {
-		opacity: 0;
-		transform: translateY(-10px);
-		pointer-events: none;
-	}
-
-	.hero-ctas {
-		display: flex;
-		gap: 14px;
-		justify-content: center;
-		flex-wrap: wrap;
 	}
 
 	/* ── chunky pill buttons (green / orange / ghost) ────────────────────────── */
@@ -919,34 +945,16 @@
 		padding: 10px 18px;
 	}
 
-	.fold-label {
-		position: absolute;
-		bottom: 62px;
-		left: 50%;
-		transform: translateX(-50%);
-		font-size: 10px;
-		font-weight: 700;
-		letter-spacing: 0.3em;
-		text-transform: uppercase;
-		color: rgba(255, 255, 255, 0.5);
-	}
 	.scrollcue {
-		position: absolute;
-		bottom: 20px;
-		left: 50%;
-		transform: translateX(-50%);
-		font-size: 11px;
-		font-weight: 700;
-		letter-spacing: 0.15em;
-		text-transform: uppercase;
+		align-self: center;
+		margin-top: 36px;
 		color: rgba(255, 255, 255, 0.85);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 2px;
 	}
 	.scrollcue .chev {
-		font-size: 16px;
+		font-size: 22px;
 		animation: bob 1.6s ease-in-out infinite;
 	}
 	@keyframes bob {
@@ -954,39 +962,118 @@
 		50% { transform: translateY(4px); }
 	}
 
-	/* ── white content sheets that float over the field ──────────────────────── */
+	/* ── B21 body: light-gray page, purple pixel field bleeds on the side margins ─ */
+	.intro,
 	.band,
 	.experience,
 	.numbers,
 	.nashville,
+	.sponsors,
 	.tickets {
+		background: #eef1f4;
+		max-width: 1200px;
+		margin: 0 auto;
 		padding: 0;
+	}
+	.intro {
+		padding-top: 44px;
 	}
 	.band .sheet,
 	.experience .sheet,
 	.numbers .sheet,
 	.nashville .sheet,
 	.tickets .sheet {
-		background: var(--paper);
-		border-radius: 6px;
-		box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
-		padding: 72px 64px;
+		background: transparent;
+		padding: 58px 64px;
 		max-width: 1080px;
 	}
 	.band {
-		padding-top: 64px;
+		padding-top: 8px;
 	}
 	.experience,
 	.numbers,
 	.nashville,
 	.tickets {
-		padding-top: 36px;
+		padding-top: 0;
 	}
 	.sponsors {
-		padding: 52px 0 36px;
+		padding: 40px 0 44px;
 	}
-	.foot {
-		margin-top: 44px;
+
+	/* ── B21 intro banner + livestream video ─────────────────────────────────── */
+	.intro-h {
+		text-align: center;
+		font-size: clamp(26px, 4.6vw, 56px);
+		font-weight: 900;
+		letter-spacing: 0.01em;
+		text-transform: uppercase;
+		line-height: 0.98;
+		margin: 0 0 30px;
+		color: var(--ink);
+	}
+	.video {
+		position: relative;
+		max-width: 940px;
+		margin: 0 auto;
+		aspect-ratio: 16 / 9;
+		border-radius: 4px;
+		overflow: hidden;
+		background-size: cover;
+		background-position: center;
+		box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+	}
+	.video-scrim {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(180deg, rgba(54, 13, 150, 0.35), rgba(54, 13, 150, 0.15));
+	}
+	.video-meta {
+		position: absolute;
+		top: 16px;
+		left: 18px;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		color: #fff;
+		font-size: 13px;
+		line-height: 1.25;
+		text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+	}
+	.vm-badge {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 28px;
+		height: 28px;
+		border-radius: 50%;
+		background: var(--orange);
+		font-size: 12px;
+	}
+	.video-play {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 74px;
+		height: 52px;
+		border: 0;
+		border-radius: 12px;
+		background: #ff0000;
+		color: #fff;
+		font-size: 22px;
+		cursor: pointer;
+		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+	}
+	.video-yt {
+		position: absolute;
+		right: 16px;
+		bottom: 14px;
+		background: rgba(0, 0, 0, 0.6);
+		color: #fff;
+		font-size: 13px;
+		font-weight: 700;
+		padding: 7px 12px;
+		border-radius: 4px;
 	}
 
 	/* ── shared type ─────────────────────────────────────────────────────────── */
@@ -1455,30 +1542,51 @@
 	}
 
 	/* ── responsive ──────────────────────────────────────────────────────────── */
-	/* between the full bar and the burger, drop the link row so the logo + TICKETS
-	   never crowd — the floating hero nav already covers section links */
-	@media (max-width: 1150px) {
-		.snav-links {
-			display: none;
+	/* stack the B21 hero: center glyph, location above, subscribe below */
+	@media (max-width: 1040px) {
+		.hero-row {
+			grid-template-columns: 1fr;
+			justify-items: center;
+			gap: 26px;
+		}
+		.hero-left {
+			justify-self: center;
+			text-align: center;
+			order: 1;
+		}
+		.hero-mid {
+			order: 0;
+		}
+		.hero-right {
+			order: 2;
+			justify-self: center;
 		}
 	}
 
 	@media (max-width: 860px) {
-		.stickynav {
+		.navbar {
 			grid-template-columns: auto 1fr auto;
+			grid-template-areas: 'brand brand burger';
+			padding: 12px 20px;
 		}
-		.snav-loc,
-		.snav-links {
+		.nb-left,
+		.nb-links {
 			display: none;
 		}
-		.snav-right {
+		.nb-right {
 			display: none;
 		}
-		.snav-burger {
+		.nb-brand {
+			justify-self: start;
+		}
+		.nb-burger {
 			display: block;
 		}
 		.mobile-menu {
 			display: flex;
+		}
+		.hero {
+			padding: 32px 22px 16px;
 		}
 		.sheet {
 			padding: 0 20px;
@@ -1502,7 +1610,6 @@
 		.cd-label {
 			display: none;
 		}
-		.fold-label,
 		.accepted {
 			display: none;
 		}
@@ -1549,8 +1656,7 @@
 	}
 	/* real logo/photo assets become dashed placeholder boxes in wireframe mode */
 	:global(html.wf) .glyph,
-	:global(html.wf) .wordmark,
-	:global(html.wf) .snav-brand img,
+	:global(html.wf) .nb-brand img,
 	:global(html.wf) .foot-brand img {
 		opacity: 0 !important;
 		outline: 1.5px dashed #999 !important;
@@ -1581,14 +1687,14 @@
 		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
 	}
 	/* center overlapping labels so they don't collide */
-	:global(html.wf) .stickynav[data-wf]::before,
+	:global(html.wf) .navbar[data-wf]::before,
 	:global(html.wf) .countdown[data-wf]::before,
 	:global(html.wf) .announce[data-wf]::before {
 		top: 50%;
 		left: 50%;
 		transform: translate(-50%, -50%);
 	}
-	:global(html.wf) .corner.tr[data-wf]::before {
+	:global(html.wf) .hero-left[data-wf]::before {
 		left: auto;
 		right: 6px;
 	}
@@ -1608,9 +1714,12 @@
 	}
 	/* hero text is white-on-cosmic normally; force it readable on paper */
 	:global(html.wf) .hero,
-	:global(html.wf) .corner,
-	:global(html.wf) .float-nav a,
-	:global(html.wf) .fold-label,
+	:global(html.wf) .hero-left,
+	:global(html.wf) .hl-venue,
+	:global(html.wf) .hl-city,
+	:global(html.wf) .hl-date,
+	:global(html.wf) .hl-whale,
+	:global(html.wf) .nb-links a,
 	:global(html.wf) .scrollcue,
 	:global(html.wf) .card-body,
 	:global(html.wf) .card-title,
