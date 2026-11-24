@@ -18,56 +18,75 @@
 	// BG_VIDEO to have a <video> take over — one line.
 	import { onMount } from 'svelte';
 
-	// ── Swap-for-real content ────────────────────────────────────────────────────
+	// ── Content — populated from the real B27 site (conference.b.tc) ──────────────
+	// Copy sourced from the live Bitcoin 2027 conference page; stat/tier values are
+	// representative stand-ins where the real figures load dynamically off-page.
 	const BRAND = 'B27';
 	const EVENT_NAME = 'BITCOIN 2027';
-	const TAGLINE = 'The world’s largest gathering of the Bitcoin economy.';
-	const DATE = 'MAY 14–16, 2027';
+	const TAGLINE = 'Sound Money. Center Stage.';
+	const DATE = 'JULY 15–17, 2027';
 	const CITY = 'NASHVILLE, TN';
 	const VENUE = 'Music City Center';
+	const VENUE_ADDR = '201 Rep. John Lewis Way S, Nashville, TN 37203';
 	// Drop a real looping mp4 path here (e.g. '/b27/hero-loop.mp4') and the <video>
 	// takes over the animated-canvas background automatically.
 	const BG_VIDEO = '';
 
 	const NAV = [
-		{ label: 'Speakers', href: '#speakers' },
-		{ label: 'Agenda', href: '#agenda' },
+		{ label: 'The Story', href: '#history' },
+		{ label: 'By the Numbers', href: '#numbers' },
 		{ label: 'Sponsors', href: '#sponsors' },
-		{ label: 'History', href: '#history' },
-		{ label: 'Tickets', href: '#tickets' }
+		{ label: 'Nashville', href: '#nashville' },
+		{ label: 'Get Involved', href: '#tickets' }
 	];
 
 	const SOCIAL = [
-		{ label: 'X', href: '#' },
-		{ label: 'IG', href: '#' },
-		{ label: 'YT', href: '#' }
+		{ label: 'X', href: 'https://x.com/BitcoinConf' },
+		{ label: 'IG', href: 'https://instagram.com/bitcoinconference' },
+		{ label: 'YT', href: 'https://youtube.com/@BitcoinMagazine' }
 	];
 
-	// B1 — history / key moments of the conference
+	// "The Story" — the real B27 narrative, as a history/key-moments timeline
+	const STORY =
+		'What started as a reunion for a fragmented ecosystem has become the world’s largest Bitcoin event platform — where builders, institutions, policymakers, and global decision-makers come together every year to shape what’s next.';
 	const MOMENTS = [
-		{ yr: '2019', note: 'San Francisco. The template that started it — a sold-out hall and the design language this page is a love letter to.' },
-		{ yr: '2021', note: 'Miami. 12,000 attendees. The Laser-Eye era goes mainstream; a sitting president dials in.' },
-		{ yr: '2024', note: 'Nashville. Policy takes the main stage. Bitcoin stops asking permission.' },
-		{ yr: '2027', note: 'Nashville, again — bigger. Where the industry sets the agenda for the next cycle.' }
+		{ yr: '2019', note: 'The signal begins. A reunion for a fragmented ecosystem — the show that’s set the industry’s agenda ever since.' },
+		{ yr: '2024', note: 'B24: the Reserve Bill is unveiled in Nashville, and the first sitting president addresses the community.' },
+		{ yr: '2026', note: 'B26: 200+ companies bring the hall to life, from Moon sponsors to Block supporters.' },
+		{ yr: '2027', note: 'Sound Money. Center Stage. “The room where the rest of the decade gets written.”' }
 	];
 
-	// C — speakers (shown in a deliberately-not-generic offset layout)
-	const SPEAKERS = [
-		{ name: 'Satoshi N.', role: 'Keynote · TBA', tag: 'HEADLINER' },
-		{ name: 'Lyn Alden', role: 'Macro', tag: '' },
-		{ name: 'Jack Dorsey', role: 'Builder', tag: '' },
-		{ name: 'Nic Carter', role: 'Capital', tag: '' },
-		{ name: 'Elizabeth Stark', role: 'Lightning', tag: '' },
-		{ name: 'Michael Saylor', role: 'Treasury', tag: '' }
+	// Pull-quote from the live site
+	const QUOTE = {
+		text: 'The room where the rest of the decade gets written.',
+		who: 'David Bailey',
+		role: 'CEO & Chairman, Nakamoto Inc.'
+	};
+
+	// "By the Numbers" — representative stand-ins (real figures load dynamically)
+	const NUMBERS = [
+		{ val: '35,000+', label: 'Total Avg. Attendees' },
+		{ val: '500+', label: 'Speakers' },
+		{ val: '120+', label: 'Countries' }
 	];
 
-	const SPONSORS = ['RIVER', 'CASA', 'UNCHAINED', 'SWAN', 'STRIKE', 'FOLD', 'VOLTAGE', 'XAPO', 'LEDGER', 'TREZOR', 'BITKEY', 'COLDCARD'];
+	// Real B26 sponsor-tier language (Moon → Block)
+	const SPONSOR_TIERS = ['MOON', 'WHALE', 'GENESIS', 'BLOCK'];
+	const SPONSORS = ['200+ COMPANIES', 'MOON SPONSORS', 'WHALE SPONSORS', 'GENESIS SPONSORS', 'BLOCK SUPPORTERS', 'B27 BOOTHS GOING FAST'];
 
-	// B2 / D — ticket tiers
+	// Nashville venue facts from the live site
+	const VENUE_FACTS = [
+		{ k: 'Floor Space', v: '1.2M sq ft' },
+		{ k: 'Exhibit Hall', v: '353,000 sq ft' },
+		{ k: 'Meeting Rooms', v: '60+' },
+		{ k: 'Capacity', v: '35,000+' }
+	];
+
+	// Get Involved — ticket/booth tiers (D / B2)
 	const TIERS = [
-		{ name: 'GENERAL', price: '0.004', usd: '$499', perks: ['All keynotes & stages', '3-day expo hall', 'Industry mixers'] },
-		{ name: 'WHALE PASS', price: '0.018', usd: '$2,250', perks: ['Front-section seating', 'Speaker green room', 'Collector lounge + merch drop', 'Priority re-entry'], feature: true },
-		{ name: 'INDUSTRY', price: '—', usd: 'Contact', perks: ['Group & team rates', 'Booth bundles', 'Custom activations'] }
+		{ name: 'GENERAL', price: '0.004', usd: '$499', perks: ['All stages & keynotes', '3-day Exhibit Hall', 'Industry mixers'] },
+		{ name: 'WHALE PASS', price: '0.018', usd: '$2,250', perks: ['Front-section seating', 'Speaker green room access', 'Collector lounge + merch', 'Priority re-entry'], feature: true },
+		{ name: 'SPONSOR / BOOTH', price: '—', usd: 'Contact', perks: ['Moon → Block tiers', 'Exhibit Hall booths', 'Custom activations'] }
 	];
 
 	// ── Scroll state: A2 nav detaches into a sticky solid navbar (the mechanic) ───
@@ -77,10 +96,24 @@
 		scrolled = (typeof window !== 'undefined' ? window.scrollY : 0) > 120;
 	}
 
+	// ── Wireframe mode: ON strips to the structural skeleton (the sketch); OFF is
+	//    the real styled page. Persisted so a toggle survives reloads. ────────────
+	let wireframe = $state(false);
+	$effect(() => {
+		if (typeof document === 'undefined') return;
+		document.documentElement.classList.toggle('wf', wireframe);
+		try {
+			localStorage.setItem('b27-wireframe', wireframe ? '1' : '0');
+		} catch {}
+	});
+
 	// ── Self-contained animated background (stands in for the bg video) ──────────
 	let canvas: HTMLCanvasElement;
 	onMount(() => {
 		onScroll();
+		try {
+			wireframe = localStorage.getItem('b27-wireframe') === '1';
+		} catch {}
 		if (BG_VIDEO) return; // real video takes over; skip canvas work
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return;
@@ -168,10 +201,26 @@
 
 <svelte:window on:scroll={onScroll} />
 
+<!-- ── Wireframe toggle: ON = structural skeleton (the sketch) · OFF = styled ── -->
+<button
+	class="wf-toggle"
+	class:on={wireframe}
+	onclick={() => (wireframe = !wireframe)}
+	aria-pressed={wireframe}
+	title="Toggle wireframe mode"
+>
+	<span class="wf-dot"></span>
+	Wireframe {wireframe ? 'ON' : 'OFF'}
+</button>
+
 <div class="b27" class:scrolled>
 	<!-- demo ribbon -->
 	<div class="ribbon">
-		TEMPLATE DEMO · “{EVENT_NAME}-style” conference one-pager · showing the sticky-hero mechanic · not a live event
+		{#if wireframe}
+			WIREFRAME MODE · structural skeleton (the sketch) · toggle off for the real B27 content
+		{:else}
+			TEMPLATE DEMO · “{EVENT_NAME}-style” one-pager · content from conference.b.tc · toggle wireframe to see the structure
+		{/if}
 	</div>
 
 	<!-- ── Background: video OR animated canvas, behind everything ──────────────── -->
@@ -186,7 +235,7 @@
 	</div>
 
 	<!-- ── B: sticky solid navbar — appears once A2 detaches on scroll ──────────── -->
-	<header class="stickynav" class:show={scrolled}>
+	<header class="stickynav" class:show={scrolled} data-wf="A2* · STICKY NAVBAR (on scroll)">
 		<a class="snav-brand" href="#top">{BRAND}</a>
 		<nav class="snav-links" aria-label="Sections">
 			{#each NAV as n}
@@ -213,12 +262,12 @@
 	<!-- ════════════════════════════════════════════════════════════════════════
 	     A · HERO — fullscreen, centered, floats over the bg video
 	     ════════════════════════════════════════════════════════════════════════ -->
-	<section class="hero" id="top">
+	<section class="hero" id="top" data-wf="A · HERO (video bg, fullscreen)">
 		<!-- A3 · corners: social (left) + location (right) -->
-		<div class="corner tl">
+		<div class="corner tl" data-wf="A3 · social">
 			{#each SOCIAL as s}<a href={s.href}>{s.label}</a>{/each}
 		</div>
-		<div class="corner tr">
+		<div class="corner tr" data-wf="A3 · location">
 			<span>{CITY}</span>
 			<span class="muted">{VENUE}</span>
 		</div>
@@ -226,7 +275,7 @@
 		<!-- contained centered column — bg shows on the sides -->
 		<div class="hero-inner">
 			<!-- A1 · hero logo -->
-			<div class="mark">{BRAND}</div>
+			<div class="mark" data-wf="A1 · logo">{BRAND}</div>
 			<h1 class="evt">{EVENT_NAME}</h1>
 			<p class="tag">{TAGLINE}</p>
 			<div class="meta">
@@ -235,13 +284,13 @@
 
 			<!-- A2 · nav items float as text links. On scroll these hand off to the
 			     sticky bar above (which fades in as this fades out). -->
-			<nav class="float-nav" class:lift={scrolled} aria-label="Primary">
+			<nav class="float-nav" class:lift={scrolled} aria-label="Primary" data-wf="A2 · nav (floats → sticky)">
 				{#each NAV as n}
 					<a href={n.href}>{n.label}</a>
 				{/each}
 			</nav>
 
-			<a class="hero-cta" href="#tickets" onclick={goTickets}>Secure your pass →</a>
+			<a class="hero-cta" href="#tickets" onclick={goTickets}>Get Involved →</a>
 		</div>
 
 		<div class="fold-label">↑ ABOVE THE FOLD</div>
@@ -252,14 +301,11 @@
 	     B · contained "mid section" — history / key moments + ticket CTA
 	     Centered content, bg video still visible on the flanks.
 	     ════════════════════════════════════════════════════════════════════════ -->
-	<section class="band" id="history">
+	<section class="band" id="history" data-wf="B1 · THE STORY / history + key moments">
 		<div class="contain">
-			<div class="eyebrow">The story so far</div>
-			<h2 class="band-h">Not a first-time show.</h2>
-			<p class="lede">
-				{EVENT_NAME} stands on eight years of the biggest rooms in Bitcoin. Here’s how we got
-				here — and why {CITY.split(',')[0]} again.
-			</p>
+			<div class="eyebrow">The Story</div>
+			<h2 class="band-h">Setting the signal since 2019.</h2>
+			<p class="lede">{STORY}</p>
 
 			<ol class="timeline">
 				{#each MOMENTS as m, i}
@@ -270,34 +316,38 @@
 				{/each}
 			</ol>
 
+			<!-- pull-quote from the live site -->
+			<figure class="pullquote">
+				<blockquote>“{QUOTE.text}”</blockquote>
+				<figcaption>— {QUOTE.who}, <span class="muted">{QUOTE.role}</span></figcaption>
+			</figure>
+
 			<!-- B2 · ticket CTA inline -->
-			<a class="inline-cta" href="#tickets" onclick={goTickets}>
-				<span>Passes are live — lock in launch pricing</span>
+			<a class="inline-cta" href="#tickets" onclick={goTickets} data-wf="B2 · ticket CTA">
+				<span>B27 booths are going fast — get involved</span>
 				<span class="ic-arrow">→</span>
 			</a>
 		</div>
 	</section>
 
 	<!-- ════════════════════════════════════════════════════════════════════════
-	     C · SPEAKERS — deliberately NOT a generic card grid. Offset editorial rows.
+	     C · BY THE NUMBERS — deliberately NOT a generic grid. Oversized stat rows.
 	     ════════════════════════════════════════════════════════════════════════ -->
-	<section class="speakers" id="speakers">
+	<section class="speakers" id="numbers" data-wf="C · BY THE NUMBERS">
 		<div class="contain">
 			<div class="sec-head">
-				<div class="eyebrow light">On stage</div>
-				<h2>Who you’ll hear from.</h2>
-				<p class="sub">A first wave. More announced every week until doors.</p>
+				<div class="eyebrow light">By the Numbers</div>
+				<h2>The scale speaks first.</h2>
+				<p class="sub">What a reunion for a fragmented ecosystem became.</p>
 			</div>
 
 			<ul class="spk-list">
-				{#each SPEAKERS as sp, i}
-					<li class="spk" class:feature={sp.tag} style="--off:{i % 2 === 0 ? '0' : '1'}">
+				{#each NUMBERS as n, i}
+					<li class="spk num" style="--off:{i % 2 === 0 ? '0' : '1'}">
 						<span class="spk-idx">{String(i + 1).padStart(2, '0')}</span>
-						<span class="spk-face" aria-hidden="true">{sp.name.split(' ')[0][0]}{(sp.name.split(' ')[1] ?? ' ')[0]}</span>
+						<span class="num-val">{n.val}</span>
 						<span class="spk-body">
-							{#if sp.tag}<span class="spk-tag">{sp.tag}</span>{/if}
-							<span class="spk-name">{sp.name}</span>
-							<span class="spk-role">{sp.role}</span>
+							<span class="spk-name">{n.label}</span>
 						</span>
 					</li>
 				{/each}
@@ -305,31 +355,31 @@
 		</div>
 	</section>
 
-	<!-- Agenda strip (C — "points you somewhere") -->
-	<section class="agenda" id="agenda">
-		<div class="contain agenda-grid">
-			<div class="ag-col">
-				<div class="ag-day">DAY 01</div>
-				<div class="ag-theme">Macro &amp; Markets</div>
-				<div class="ag-sub">Open main stage · expo hall opens · opening party</div>
-			</div>
-			<div class="ag-col">
-				<div class="ag-day">DAY 02</div>
-				<div class="ag-theme">Policy &amp; Mining</div>
-				<div class="ag-sub">Nation-state panels · hashrate summit · collector lounge</div>
-			</div>
-			<div class="ag-col">
-				<div class="ag-day">DAY 03</div>
-				<div class="ag-theme">Builders &amp; Lightning</div>
-				<div class="ag-sub">Dev stage · startup pitch finals · closing keynote</div>
-			</div>
+	<!-- Nashville / venue strip (C — "points you somewhere") -->
+	<section class="agenda" id="nashville" data-wf="C · NASHVILLE / VENUE">
+		<div class="contain">
+			<div class="eyebrow light">Nashville</div>
+			<h2 class="nash-h">Home turf.</h2>
+			<p class="sub nash-sub">
+				BTC Inc. is headquartered in Nashville — we built the Bitcoin Museum here. B24 was where
+				the Reserve Bill was unveiled and the first sitting president addressed this community.
+			</p>
 		</div>
+		<div class="contain agenda-grid venue-grid">
+			{#each VENUE_FACTS as f}
+				<div class="ag-col">
+					<div class="ag-day">{f.k}</div>
+					<div class="ag-theme">{f.v}</div>
+				</div>
+			{/each}
+		</div>
+		<div class="contain venue-addr">{VENUE} · {VENUE_ADDR}</div>
 	</section>
 
 	<!-- SPONSORS (C) — marquee, not a logo soup grid -->
-	<section class="sponsors" id="sponsors">
+	<section class="sponsors" id="sponsors" data-wf="C · SPONSORS (Moon → Block)">
 		<div class="contain">
-			<div class="eyebrow light center">Backed by the industry</div>
+			<div class="eyebrow light center">Past Sponsors · B26 — 200+ companies, Moon → Block</div>
 		</div>
 		<div class="marquee" aria-label="Sponsors">
 			<div class="track">
@@ -341,12 +391,12 @@
 	<!-- ════════════════════════════════════════════════════════════════════════
 	     D · FINAL CTA — tickets + "BTC Inc" footer
 	     ════════════════════════════════════════════════════════════════════════ -->
-	<section class="tickets" id="tickets">
+	<section class="tickets" id="tickets" data-wf="D · GET INVOLVED / final CTA">
 		<div class="contain">
 			<div class="sec-head center">
-				<div class="eyebrow">Passes</div>
+				<div class="eyebrow">Get Involved</div>
 				<h2>Be in the room.</h2>
-				<p class="sub">Priced in sats. Launch pricing while it lasts.</p>
+				<p class="sub">Priced in sats. {DATE} · {CITY}.</p>
 			</div>
 			<div class="tiers">
 				{#each TIERS as t}
@@ -369,7 +419,7 @@
 		</div>
 	</section>
 
-	<footer class="foot">
+	<footer class="foot" data-wf="D · FOOTER (BTC Inc)">
 		<div class="contain foot-in">
 			<div class="foot-brand">{BRAND}</div>
 			<div class="foot-cols">
@@ -378,17 +428,17 @@
 					{#each NAV as n}<a href={n.href}>{n.label}</a>{/each}
 				</div>
 				<div>
-					<div class="fc-h">Connect</div>
-					{#each SOCIAL as s}<a href={s.href}>{s.label}</a>{/each}
+					<div class="fc-h">Follow</div>
+					{#each SOCIAL as s}<a href={s.href} target="_blank" rel="noopener">{s.label}</a>{/each}
 				</div>
 				<div>
 					<div class="fc-h">When &amp; where</div>
-					<span>{DATE}</span><span>{VENUE}</span><span>{CITY}</span>
+					<span>{DATE}</span><span>{VENUE}</span><span>{VENUE_ADDR}</span>
 				</div>
 			</div>
 			<div class="foot-bottom">
-				<span>© {new Date().getFullYear()} BTC Inc. All rights reserved.</span>
-				<span class="muted">A “{EVENT_NAME}-style” template · built on tommy.studio</span>
+				<span>Bitcoin Conference is published by BTC Inc. — a subsidiary of Nakamoto Inc. (NASDAQ: NAKA).</span>
+				<span class="muted">A “{EVENT_NAME}-style” template · content from conference.b.tc · built on tommy.studio</span>
 			</div>
 		</div>
 	</footer>
@@ -1136,6 +1186,98 @@
 		color: var(--mut);
 	}
 
+	/* ── By the Numbers: oversized stat value in place of the avatar ─────────── */
+	.spk.num {
+		grid-template-columns: 54px auto 1fr;
+	}
+	.num-val {
+		font-size: clamp(34px, 7vw, 68px);
+		font-weight: 900;
+		letter-spacing: -0.02em;
+		color: var(--orange);
+		line-height: 1;
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* ── pull-quote ──────────────────────────────────────────────────────────── */
+	.pullquote {
+		margin: 8px 0 40px;
+		border-left: 3px solid var(--orange);
+		padding: 6px 0 6px 24px;
+	}
+	.pullquote blockquote {
+		margin: 0;
+		font-size: clamp(20px, 3.2vw, 30px);
+		font-weight: 700;
+		line-height: 1.25;
+		letter-spacing: -0.01em;
+	}
+	.pullquote figcaption {
+		margin-top: 12px;
+		font-size: 14px;
+		letter-spacing: 0.02em;
+	}
+
+	/* ── nashville / venue ───────────────────────────────────────────────────── */
+	.nash-h {
+		margin-top: 4px;
+	}
+	.nash-sub {
+		max-width: 620px;
+		margin-bottom: 8px;
+	}
+	.venue-grid {
+		margin-top: 30px;
+	}
+	.venue-addr {
+		margin-top: 26px;
+		font-size: 13px;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--mut);
+	}
+
+	/* ── wireframe toggle button (fixed, always on top) ──────────────────────── */
+	.wf-toggle {
+		position: fixed;
+		right: 18px;
+		bottom: 18px;
+		z-index: 200;
+		display: inline-flex;
+		align-items: center;
+		gap: 9px;
+		background: #111;
+		color: #fff;
+		border: 1px solid rgba(255, 255, 255, 0.25);
+		border-radius: 999px;
+		padding: 10px 16px;
+		font-size: 12px;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		cursor: pointer;
+		box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+		transition: background 0.2s, color 0.2s, border-color 0.2s;
+	}
+	.wf-toggle:hover {
+		border-color: var(--orange);
+	}
+	.wf-toggle.on {
+		background: #fff;
+		color: #111;
+		border-color: #111;
+	}
+	.wf-dot {
+		width: 9px;
+		height: 9px;
+		border-radius: 50%;
+		background: #555;
+		transition: background 0.2s;
+	}
+	.wf-toggle.on .wf-dot {
+		background: var(--orange);
+	}
+
 	/* ── responsive ──────────────────────────────────────────────────────────── */
 	@media (max-width: 760px) {
 		.snav-links,
@@ -1170,5 +1312,90 @@
 		.fold-label {
 			display: none;
 		}
+	}
+
+	/* ════════════════════════════════════════════════════════════════════════
+	   WIREFRAME MODE — html.wf strips the page to its structural skeleton (the
+	   sketch): white blueprint, dashed block outlines, labels revealed, color &
+	   imagery removed. Driven by the Wireframe toggle.
+	   ════════════════════════════════════════════════════════════════════════ */
+	:global(html.wf) .b27 {
+		--orange: #111;
+		--ink: #111;
+		--mut: #888;
+		background: #f4f4f2;
+		color: #111;
+	}
+	/* kill the background video/canvas + texture */
+	:global(html.wf) .bg,
+	:global(html.wf) .bg-grain {
+		display: none !important;
+	}
+	/* flatten every decorated surface to plain paper */
+	:global(html.wf) .b27 :global(*) {
+		background: transparent !important;
+		box-shadow: none !important;
+		text-shadow: none !important;
+		backdrop-filter: none !important;
+		color: #111 !important;
+		border-color: #bbb !important;
+	}
+	:global(html.wf) .ribbon {
+		background: #111 !important;
+		color: #fff !important;
+	}
+	/* outline the labelled structural blocks + print their label */
+	:global(html.wf) [data-wf] {
+		position: relative;
+		outline: 1.5px dashed #999;
+		outline-offset: -1px;
+	}
+	:global(html.wf) [data-wf]::before {
+		content: attr(data-wf);
+		position: absolute;
+		top: 6px;
+		left: 6px;
+		z-index: 5;
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		background: #111 !important;
+		color: #fff !important;
+		padding: 3px 7px;
+		border-radius: 2px;
+		pointer-events: none;
+		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+	}
+	/* the sticky navbar label shouldn't overlap the brand — nudge it */
+	:global(html.wf) .stickynav[data-wf]::before {
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+	}
+	/* generic placeholder look for key hero elements */
+	:global(html.wf) .mark {
+		border: 1.5px dashed #999 !important;
+		box-shadow: none !important;
+	}
+	:global(html.wf) .snav-cta,
+	:global(html.wf) .hero-cta,
+	:global(html.wf) .tier-cta,
+	:global(html.wf) .inline-cta,
+	:global(html.wf) .wf-toggle {
+		border: 1.5px solid #111 !important;
+	}
+	/* stop the sponsor marquee from scrolling in blueprint mode */
+	:global(html.wf) .track {
+		animation: none !important;
+	}
+	/* flatten rounded corners so blocks read as boxes */
+	:global(html.wf) .tier,
+	:global(html.wf) .spk-face,
+	:global(html.wf) .snav-cta {
+		border-radius: 2px !important;
+	}
+	/* dim the drifting network cue lines that no longer exist */
+	:global(html.wf) .scrollcue .chev {
+		animation: none !important;
 	}
 </style>
