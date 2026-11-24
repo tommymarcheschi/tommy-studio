@@ -24,6 +24,12 @@
 	// (the sketch); OFF is the styled page. All content is isolated consts up top.
 	import { onMount } from 'svelte';
 
+	// ── Real B27 brand assets (self-hosted from conference.b.tc) ──────────────────
+	const LOGO_DARK = '/b27/b27-nav.svg'; // white "bitcoin" wordmark — for the dark hero
+	const LOGO_LIGHT = '/b27/b27-nav-light.svg'; // black wordmark — for the white sticky bar
+	const GLYPH = '/b27/icon.svg'; // the official orange "2₿7" circular glyph
+	const HERO_IMG = '/b27/hero-poster.webp'; // real B24 Nashville crowd photo
+
 	// ── Content — populated from the real B27 site (conference.b.tc) ──────────────
 	const BRAND_PRE = 'bitcoin'; // logo wordmark: "₿ bitcoin27"
 	const BRAND_YR = '27';
@@ -68,11 +74,12 @@
 		role: 'CEO & Chairman, Nakamoto Inc.'
 	};
 
-	// Orange-capped experience cards (B22's "DAY 1 / DAY 2-3 / DAY 4" pattern)
+	// Orange-capped experience cards (B22's "DAY 1 / DAY 2-3 / DAY 4" pattern) —
+	// real B24/B25 conference photos from conference.b.tc
 	const EXPERIENCE = [
-		{ cap: 'DAY 1', title: 'INDUSTRY DAY', note: 'Institutions, miners & builders.', hue: 212 },
-		{ cap: 'DAY 2–3', title: 'MAIN STAGE', note: 'Keynotes, debates & the big reveals.', hue: 28, feature: true },
-		{ cap: 'DAY 4', title: 'SOUND MONEY FEST', note: 'Music, art & the after-hours.', hue: 288 }
+		{ cap: 'DAY 1', title: 'INDUSTRY DAY', note: 'Institutions, miners & builders.', img: '/b27/b25-expo.webp' },
+		{ cap: 'DAY 2–3', title: 'MAIN STAGE', note: 'Keynotes, debates & the big reveals.', img: '/b27/b24-crowd.webp', feature: true },
+		{ cap: 'DAY 4', title: 'SOUND MONEY FEST', note: 'Music, art & the after-hours.', img: '/b27/b25-crowd.webp' }
 	];
 
 	// "Run the Numbers" (B22 pattern)
@@ -200,8 +207,10 @@
 		Pre-order your tickets for {EVENT_NAME} →
 	</a>
 
-	<!-- bold cosmic hero field + pixel dither (behind the content) lives in CSS -->
+	<!-- bold hero field: real B24 Nashville crowd photo + cosmic wash + dither -->
 	<div class="field" aria-hidden="true">
+		<div class="photo" style="background-image:url({HERO_IMG})"></div>
+		<div class="wash"></div>
 		<div class="stars"></div>
 		<div class="dither"></div>
 		<div class="horizon"></div>
@@ -214,7 +223,7 @@
 			<span>{CITY}</span><span>{DATE}</span><span>{VENUE}</span>
 		</div>
 		<a class="snav-brand" href="#top">
-			<span class="coin">₿</span><strong>{BRAND_PRE}</strong><span class="yr">{BRAND_YR}</span>
+			<img src={LOGO_LIGHT} alt={EVENT_NAME} height="26" />
 		</a>
 		<div class="snav-right">
 			<nav class="snav-links" aria-label="Sections">
@@ -246,10 +255,9 @@
 		</div>
 
 		<div class="hero-inner">
-			<!-- A1 · the circular orange "2 ₿ 7" glyph badge -->
-			<div class="glyph" data-wf="A1 · glyph badge (2₿7)">
-				<span class="g1">2</span><span class="gcoin">₿</span><span class="g2">{BRAND_YR.slice(-1)}</span>
-			</div>
+			<!-- A1 · the official B27 circular "2₿7" glyph + wordmark -->
+			<img class="glyph" src={GLYPH} alt="Bitcoin 2027" data-wf="A1 · glyph badge (2₿7)" />
+			<img class="wordmark" src={LOGO_DARK} alt={EVENT_NAME} />
 
 			<h1 class="hero-h">{TAGLINE}</h1>
 			<p class="hero-sub">See you in {VENUE.replace(' Center', '')} · {DATE}</p>
@@ -309,12 +317,15 @@
 			<h2 class="big center">THREE DAYS. ONE SIGNAL.</h2>
 			<div class="cards">
 				{#each EXPERIENCE as c}
-					<div class="card" class:feature={c.feature} style="--hue:{c.hue}">
+					<div class="card" class:feature={c.feature}>
 						<div class="card-cap">{c.cap}</div>
-						<div class="card-body">
-							<div class="card-title">{c.title}</div>
-							<div class="card-note">{c.note}</div>
-							{#if c.feature}<a class="pill orange sm" href="#tickets" onclick={goTickets}>View Agenda</a>{/if}
+						<div class="card-body" style="background-image:url({c.img})">
+							<div class="card-scrim"></div>
+							<div class="card-text">
+								<div class="card-title">{c.title}</div>
+								<div class="card-note">{c.note}</div>
+								{#if c.feature}<a class="pill orange sm" href="#tickets" onclick={goTickets}>View Agenda</a>{/if}
+							</div>
 						</div>
 					</div>
 				{/each}
@@ -400,7 +411,7 @@
 	<footer class="foot" data-wf="D · FOOTER (BTC Inc)">
 		<div class="sheet foot-in">
 			<div class="foot-brand">
-				<span class="coin">₿</span><strong>{BRAND_PRE}</strong><span class="yr">{BRAND_YR}</span>
+				<img src={LOGO_DARK} alt={EVENT_NAME} height="30" />
 			</div>
 			<div class="foot-cols">
 				<div>
@@ -535,7 +546,7 @@
 		filter: brightness(1.05);
 	}
 
-	/* ── cosmic hero FIELD (fixed, behind the contained columns) ─────────────── */
+	/* ── hero FIELD (fixed, behind the contained columns) ────────────────────── */
 	.field {
 		position: fixed;
 		inset: 0;
@@ -543,6 +554,25 @@
 		background:
 			radial-gradient(120% 80% at 50% -10%, #5a2bd6 0%, #360d96 34%, #1a0a4e 62%, #0b0718 100%);
 		overflow: hidden;
+	}
+	/* real B24 Nashville crowd photo, anchored to the top (the hero) */
+	.field .photo {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 100vh;
+		background-size: cover;
+		background-position: center 30%;
+		opacity: 0.55;
+	}
+	/* purple/orange wash over the photo so the white text stays legible */
+	.field .wash {
+		position: absolute;
+		inset: 0;
+		background:
+			linear-gradient(180deg, rgba(11, 7, 24, 0.35) 0%, rgba(11, 7, 24, 0.1) 30%, rgba(11, 7, 24, 0.85) 78%, #0b0718 100%),
+			radial-gradient(120% 70% at 50% 8%, rgba(90, 43, 214, 0.5), transparent 70%);
 	}
 	/* starfield */
 	.stars {
@@ -612,8 +642,8 @@
 		display: grid;
 		grid-template-columns: 1fr auto 1fr;
 		align-items: center;
-		gap: 16px;
-		padding: 12px 30px;
+		gap: 24px;
+		padding: 12px 28px;
 		background: #fff;
 		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.14);
 		transform: translateY(-120%);
@@ -645,21 +675,12 @@
 	.snav-brand {
 		display: inline-flex;
 		align-items: center;
-		gap: 3px;
-		font-size: 28px;
-		font-weight: 700;
-		font-style: italic;
-		color: var(--ink);
 		justify-self: center;
 	}
-	.snav-brand .coin {
-		font-style: normal;
-		font-size: 23px;
-		margin-right: 2px;
-	}
-	.snav-brand .yr {
-		color: var(--orange);
-		font-weight: 900;
+	.snav-brand img {
+		display: block;
+		height: 26px;
+		width: auto;
 	}
 	.snav-right {
 		justify-self: end;
@@ -669,12 +690,16 @@
 	}
 	.snav-links {
 		display: flex;
-		gap: 18px;
-		font-size: 13px;
+		gap: 16px;
+		font-size: 12px;
 		font-weight: 700;
-		letter-spacing: 0.03em;
+		letter-spacing: 0.02em;
 		text-transform: uppercase;
 		color: var(--ink);
+		white-space: nowrap;
+	}
+	.snav-links a {
+		white-space: nowrap;
 	}
 	.snav-links a:hover {
 		color: var(--orange);
@@ -765,33 +790,20 @@
 	.hero-inner {
 		max-width: 920px;
 	}
-	/* the circular orange "2 ₿ 7" glyph badge */
+	/* the official B27 circular "2₿7" glyph (real asset) */
 	.glyph {
-		width: clamp(120px, 20vw, 168px);
-		height: clamp(120px, 20vw, 168px);
+		display: block;
+		width: clamp(104px, 17vw, 150px);
+		height: clamp(104px, 17vw, 150px);
+		margin: 0 auto 22px;
+		filter: drop-shadow(0 18px 50px rgba(255, 149, 0, 0.45));
+	}
+	/* the real "bitcoin 2027" wordmark under the glyph */
+	.wordmark {
+		display: block;
+		width: clamp(240px, 40vw, 430px);
+		height: auto;
 		margin: 0 auto 26px;
-		border-radius: 50%;
-		background: var(--orange);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0;
-		box-shadow: 0 18px 60px rgba(255, 149, 0, 0.4);
-		color: #fff;
-		font-weight: 900;
-		line-height: 0.8;
-	}
-	.glyph .g1,
-	.glyph .g2 {
-		font-size: clamp(56px, 10vw, 86px);
-	}
-	.glyph .g2 {
-		margin-left: -0.06em;
-	}
-	.glyph .gcoin {
-		font-size: clamp(40px, 7vw, 60px);
-		transform: translateY(0.12em);
-		margin: 0 -0.04em;
 	}
 	.hero-h {
 		font-size: clamp(38px, 8vw, 96px);
@@ -1108,19 +1120,30 @@
 		font-size: 17px;
 	}
 	.card-body {
-		min-height: 260px;
+		position: relative;
+		min-height: 300px;
 		display: flex;
 		flex-direction: column;
 		justify-content: flex-end;
-		gap: 10px;
 		padding: 24px 22px;
 		color: #fff;
-		background:
-			linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.62)),
-			linear-gradient(135deg, hsl(var(--hue) 70% 42%), hsl(calc(var(--hue) + 24) 72% 26%));
+		background-size: cover;
+		background-position: center;
+	}
+	.card-scrim {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.35) 45%, rgba(0, 0, 0, 0.82) 100%);
+	}
+	.card-text {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
 	}
 	.card.feature .card-body {
-		min-height: 300px;
+		min-height: 340px;
 	}
 	.card-title {
 		font-size: clamp(24px, 3vw, 34px);
@@ -1315,22 +1338,12 @@
 		box-shadow: none;
 	}
 	.foot-brand {
-		display: inline-flex;
-		align-items: center;
-		gap: 3px;
-		font-size: 34px;
-		font-weight: 700;
-		font-style: italic;
-		color: #fff;
+		display: block;
 		margin-bottom: 28px;
 	}
-	.foot-brand .coin {
-		font-style: normal;
-		font-size: 28px;
-	}
-	.foot-brand .yr {
-		color: var(--orange);
-		font-weight: 900;
+	.foot-brand img {
+		height: 30px;
+		width: auto;
 	}
 	.foot-cols {
 		display: grid;
@@ -1442,6 +1455,14 @@
 	}
 
 	/* ── responsive ──────────────────────────────────────────────────────────── */
+	/* between the full bar and the burger, drop the link row so the logo + TICKETS
+	   never crowd — the floating hero nav already covers section links */
+	@media (max-width: 1150px) {
+		.snav-links {
+			display: none;
+		}
+	}
+
 	@media (max-width: 860px) {
 		.stickynav {
 			grid-template-columns: auto 1fr auto;
@@ -1525,6 +1546,18 @@
 	:global(html.wf) .glyph {
 		border: 1.5px dashed #999 !important;
 		color: #111 !important;
+	}
+	/* real logo/photo assets become dashed placeholder boxes in wireframe mode */
+	:global(html.wf) .glyph,
+	:global(html.wf) .wordmark,
+	:global(html.wf) .snav-brand img,
+	:global(html.wf) .foot-brand img {
+		opacity: 0 !important;
+		outline: 1.5px dashed #999 !important;
+		min-height: 26px;
+	}
+	:global(html.wf) .card-body {
+		background-image: none !important;
 	}
 	:global(html.wf) [data-wf] {
 		position: relative;
